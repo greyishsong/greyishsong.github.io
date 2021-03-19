@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icon32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icon16.png">
+  <link rel="mask-icon" href="/images/icon.svg" color="#222">
+  <meta name="msvalidate.01" content="D37B3BF8C954AAF7CA46EC2DB932E135">
+  <meta name="baidu-site-verification" content="zCmMxRXy6v">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"greyishsong.ink","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"manual","top_n_per_article":1,"unescape":false,"preload":false}};
+  </script>
+<meta name="description" content="疫情来袭，天天在家里沉默的我终于在平板卡到死机之后爆发了。一怒之下，索性把整个硬盘格式化了装上Ubuntu，拜拜了Windows 10！ 但是安装经历就不是那么愉快了……">
+<meta property="og:type" content="article">
+<meta property="og:title" content="平板的折腾之旅：从Windows 10到Ubuntu">
+<meta property="og:url" content="http://greyishsong.ink/%E5%B9%B3%E6%9D%BF%E7%9A%84%E6%8A%98%E8%85%BE%E4%B9%8B%E6%97%85%EF%BC%9A%E4%BB%8EWindows-10%E5%88%B0Ubuntu/index.html">
+<meta property="og:site_name" content="greyishsong">
+<meta property="og:description" content="疫情来袭，天天在家里沉默的我终于在平板卡到死机之后爆发了。一怒之下，索性把整个硬盘格式化了装上Ubuntu，拜拜了Windows 10！ 但是安装经历就不是那么愉快了……">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2020/02/07/giZxfX7uNCe9QhU.png">
+<meta property="og:image" content="https://i.loli.net/2020/02/07/Y3P4KF1AU8EXx5Z.png">
+<meta property="og:image" content="https://i.loli.net/2020/02/08/3BnglmhFytNxrSM.jpg">
+<meta property="og:image" content="https://i.loli.net/2020/02/08/fDzeAoRdup7vTyP.png">
+<meta property="og:image" content="https://i.loli.net/2020/02/08/JYh9pKfmZGXwQr4.png">
+<meta property="article:published_time" content="2020-02-07T09:33:22.000Z">
+<meta property="article:modified_time" content="2020-10-07T11:56:27.000Z">
+<meta property="article:author" content="greyishsong">
+<meta property="article:tag" content="生活">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/02/07/giZxfX7uNCe9QhU.png">
+
+
+<link rel="canonical" href="http://greyishsong.ink/%E5%B9%B3%E6%9D%BF%E7%9A%84%E6%8A%98%E8%85%BE%E4%B9%8B%E6%97%85%EF%BC%9A%E4%BB%8EWindows-10%E5%88%B0Ubuntu/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>平板的折腾之旅：从Windows 10到Ubuntu | greyishsong</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/rss2.xml" title="greyishsong" type="application/rss+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">greyishsong</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing dearer than the greyish song, where the wavering and precise are joined.<br>在空泛的梦里，确切地梦到灿烂的你。想与你做橡树和木棉，无论地下还是云里，都相依在一起。</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-heart fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-友情链接"><a href="/friendlink/" rel="section"><i class="fa fa-link fa-fw"></i>友情链接</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A1%AC%E4%BB%B6%E8%AE%BE%E5%A4%87"><span class="nav-number">1.</span> <span class="nav-text">硬件设备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83"><span class="nav-number">2.</span> <span class="nav-text">系统环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%95%E7%94%A8"><span class="nav-number">3.</span> <span class="nav-text">试用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E5%BC%8F%E5%AE%89%E8%A3%85%E5%92%8C%E4%BD%BF%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">正式安装和使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">5.</span> <span class="nav-text">后记</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="greyishsong"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">greyishsong</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/greyishsong" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;greyishsong" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:greyishsong@foxmail.com" title="E-Mail → mailto:greyishsong@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/rss2.xml" title="RSS → &#x2F;rss2.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/kong-gu-you-lan-14-21/posts" title="知乎 → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;kong-gu-you-lan-14-21&#x2F;posts" rel="noopener" target="_blank"><i class="知 fa-fw"></i>知乎</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://greyishsong.ink/%E5%B9%B3%E6%9D%BF%E7%9A%84%E6%8A%98%E8%85%BE%E4%B9%8B%E6%97%85%EF%BC%9A%E4%BB%8EWindows-10%E5%88%B0Ubuntu/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="greyishsong">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="greyishsong">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          平板的折腾之旅：从Windows 10到Ubuntu
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-02-07 17:33:22" itemprop="dateCreated datePublished" datetime="2020-02-07T17:33:22+08:00">2020-02-07</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-10-07 19:56:27" itemprop="dateModified" datetime="2020-10-07T19:56:27+08:00">2020-10-07</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>疫情来袭，天天在家里沉默的我终于在平板卡到死机之后爆发了。一怒之下，索性把整个硬盘格式化了装上Ubuntu，拜拜了Windows 10！</p>
+<p>但是安装经历就不是那么愉快了……</p>
+<span id="more"></span>
+<p>毕竟这不是标准的PC/Laptop设备，考虑到小厂家的BIOS/驱动可能会出现千奇百怪的问题，还是先谨慎一点为好。</p>
+<p>先做一下心理准备：如果能解决这些问题，就干脆让Windows有多远走多远～</p>
+<ul>
+<li>触摸屏/触摸板至少有一个能基本正常使用，毕竟是平板，不是真的当笔记本用的</li>
+<li>至少不比Windows 10更卡</li>
+<li>能够提供我需要的基本功能：
+<ul>
+<li>方便地阅读PDF文档和ppt课件</li>
+<li>用markdown+TeX公式写笔记</li>
+<li>简单浏览网页</li>
+<li>临时编写代码，测试一些点子或者简单试用一些库</li>
+</ul>
+</li>
+</ul>
+<p><br /><br /></p>
+<h2 id="硬件设备">硬件设备</h2>
+<ul>
+<li>机型：中柏（Jumper）Ezpad 7s</li>
+<li>屏幕：显示分辨率1920x1080，10.8英寸屏幕</li>
+<li>内存：DDR3 4GB</li>
+<li>磁盘：eMMC 64GB</li>
+<li>CPU：Intel Cherry Trail X5-Z8350 1.44GHz</li>
+<li>显卡：Intel HD Graphic</li>
+<li>外设：
+<ul>
+<li>Jumper Ezpad 7s标配键盘</li>
+<li>金士顿microSD存储卡 64GB</li>
+</ul>
+</li>
+</ul>
+<h2 id="系统环境">系统环境</h2>
+<p>原装Windows 10 1903家庭版，计划安装Ubuntu 18.04 LTS</p>
+<h2 id="试用">试用</h2>
+<p>先用Windows 10自带的磁盘管理工具压缩出一定的空间来，安装Ubuntu，主要目的是检查硬件工作是否正常。</p>
+<p>没想到的是这一步就发现了麻烦：64GB的磁盘最多允许压缩出大概8GB的空间，这么点地方真是够紧张的——幸好，还勉强足够安装Ubuntu。</p>
+<p>我制作启动盘时用的是UltraISO，过程就不赘述了。在安装Ubuntu时，选择18.04新引入的选项“最小化安装”，放弃安装LibreOffice、ThunderMail等应用，然后选则手动分区安装系统。</p>
+<p><img src="https://i.loli.net/2020/02/07/giZxfX7uNCe9QhU.png" alt="minimal-installation.png"></p>
+<p>在&quot;What apps would you like to install to start with?&quot;中选择&quot;Minimal installation&quot;</p>
+<p>在压缩出的8GB空间中创建分区用于挂载如下目录：</p>
+<ul>
+<li><code>/boot</code>：用于放置启动引导，200MB</li>
+<li><code>/swap</code>：交换空间，类似Windows系统下的虚拟内存，1024MB</li>
+<li><code>/</code>：系统根目录，5800MB（按照Ubuntu官方给出的提示，即使是最小化安装，这部分也至少要分配5.2GB的空间）</li>
+<li><code>/home</code>：用户目录，剩余的空间都分配到这里，略多于1GB</li>
+</ul>
+<p>除了挂载<code>/boot</code>的是逻辑分区之外，其余都是主分区。</p>
+<p>配置Ubuntu分区的介绍一搜一大片，上述的配置是按照安装双系统设置的，主要参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Duane/p/6776302.html">这篇文章</a>的说明。（想给自己电脑装双系统的朋友们，注意比较新的电脑往往是UEFI引导启动的，EasyBCD不适用）</p>
+<p>安装完毕以后取出U盘，进入Windows系统，尝试用EasyUEFI修改启动顺序，将Ubuntu调到第一位。这里就又发现了坑：即使用EasyUEFI调整了启动顺序，依然是启动Windows而不是Ubuntu。为什么呢？</p>
+<p>一个个试过之后终于找到了进入BIOS设置的键（万万没想到是<code>Esc</code>），尝试从BIOS设置里修改启动顺序，发现启动顺序竟然被写死在了BIOS里……对于用惯了标准x86设备的人来说真是奇观。</p>
+<p>那既然修改的企图是白费功夫，就只好每次都先进入BIOS再选择Ubuntu引导启动了。</p>
+<p>总算是进入了Ubuntu，却发现无论是触摸屏还是触摸板的驱动都不能用了，算了，反正猜也猜到了，这种事情的发生是八九不离十的。上网一查，关于Ubuntu使用触摸屏设备的资料简直是从故纸堆里翻出来的，都18.04了，大多数资料是关于10甚至是9的，这还怎么用！一阵翻箱倒柜，竟然真被我找到了几篇同道者留下的经验：</p>
+<ul>
+<li>在<a target="_blank" rel="noopener" href="https://hhuysqt.github.io/ubuntu-tablet/">昂达V101W</a>上安装Ubuntu（由于是github pages，访问前请修改hosts避开DNS污染）</li>
+<li>在Fyde OS的社区当中，找到了关于<a target="_blank" rel="noopener" href="https://fydeos.com/community/topic/18872/">酷比魔方 KNote Go</a>安装Fyde OS后适配触摸屏的问题</li>
+<li>一位有趣的天文学博主写的<a target="_blank" rel="noopener" href="http://gerry.lamost.org/blog/?p=295926">ThinkPad X1 Yoga</a>上的适配方案</li>
+<li>用于适配开源驱动gslx680_ts_acpi的<a target="_blank" rel="noopener" href="http://bbs.phoenixstudio.org/cn/read.php?tid=25854">固件文件提取和制作</a></li>
+</ul>
+<p>有三篇文章都提到了可以使用gslx680_ts_acpi这个开源驱动做适配工作，过程大概是这样的：</p>
+<ol>
+<li>首先找到Windows下所用的驱动，对于这个开源驱动可以应对的硬件（GSLx680y系列触摸屏）来说，这个文件应当是<code>C:\Windows\System32\drives</code>当中的<code>SileadTouch.sys</code>，这可以在Windows下用设备管理器查看驱动位置找到，将其复制到TF卡中，我的TF卡使用的是exfat文件系统，Ubuntu只要安装<code>exfat-utils</code>就可以正常访问了</li>
+<li>然后执行如下的代码引入gslx680-acpi的驱动部分：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/onitake/gslx680-acpi.git</span><br><span class="line">$ <span class="built_in">cd</span> gslx680-acpi</span><br><span class="line">$ make</span><br><span class="line">$ make install</span><br><span class="line">$ sudo depmod -a</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>再用<code>gsl-frimware</code>工具获取所需的固件文件：（假设<code>SileadTouch.sys</code>已经复制到了Ubuntu系统中）</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/onitake/gsl-firmware.git</span><br><span class="line">$ cp SileadTouch.sys gsl-firmware/tools</span><br><span class="line">$ <span class="built_in">cd</span> gsl-firmware/tools</span><br><span class="line">$ ./scanwindrv SileadTouch.sys</span><br><span class="line">$ ./fwtool -c firmware_00.fw -m 1680 -w 1730 -h 1120 -t 10 silead_ts.fw</span><br></pre></td></tr></table></figure>
+<ol start="4">
+<li>将固件放进对应的位置，重启系统</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo cp silead_ts.fw /lib/firmware</span><br><span class="line">$ sudo rmmod silead</span><br><span class="line">$ sudo modprobe gslx_680_acpi</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>重复第三、四步（是的，重复它……）改变<code>-w</code>和<code>-h</code>参数后面的数值，它们分别代表触摸屏的物理宽度和长度。需要注意的是，<strong>物理尺寸和显示尺寸根本不是一个东西</strong>，例如：我的Ezpad 7s显示分辨率是1920x1080，但是物理尺寸大约是1730x1120。这个物理尺寸根本无处查询，只能逐步缩小试验来大概估计——这足足消耗了我一晚上时间，只是一遍一遍地生成文件和重启这该死的平板。</li>
+</ol>
+<p>如果是一些比较老的型号，在<a target="_blank" rel="noopener" href="https://github.com/onitake/gsl-firmware">gsl-firmware</a>这个项目上就可以找到前辈身先士卒踩坑的经验，可惜，Jumper的产品现在也才公布到Ezpad 6s，所以我只好用这样的办法来试：</p>
+<p>放好<code>silead_ts.fw</code>文件后，重启系统，用触控笔（当然用手也行，只是不大方便看）在桌面上框选，看看拉到屏幕边缘时，选框大概能到什么位置。</p>
+<p><img src="https://i.loli.net/2020/02/07/Y3P4KF1AU8EXx5Z.png" alt="select-screen.png"></p>
+<p>图片是Linux Mint下我随便截的，Ubuntu下也没什么区别。因为触摸屏是以左上角为<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(0,0)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">0</span><span class="mclose">)</span></span></span></span>点的，所以如果选框右下角达不到桌面右下角，并且能够得着的最远点是<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(x,y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span>的话，那输入的物理分辨率太大了，应该调整为</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>w</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>=</mo><mi>w</mi><mo>×</mo><mfrac><mi>x</mi><msub><mi>w</mi><mn>0</mn></msub></mfrac><mspace linebreak="newline"></mspace><mtext> </mtext><mspace linebreak="newline"></mspace><msup><mi>h</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>=</mo><mi>h</mi><mo>×</mo><mfrac><mi>y</mi><msub><mi>h</mi><mn>0</mn></msub></mfrac></mrow><annotation encoding="application/x-tex">w&#x27;=w\times\frac{x}{w_0} \\
+\nobreakspace \\
+h&#x27;=h\times\frac{y}{h_0}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.801892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.801892em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.66666em;vertical-align:-0.08333em;"></span><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.9435600000000002em;vertical-align:-0.8360000000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.10756em;"><span style="top:-2.3139999999999996em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02691em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8360000000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span><span class="mspace newline"></span><span class="base"><span class="strut" style="height:0em;vertical-align:0em;"></span><span class="mspace nobreak"> </span></span><span class="mspace newline"></span><span class="base"><span class="strut" style="height:0.801892em;vertical-align:0em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.801892em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="mord mathnormal">h</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.94356em;vertical-align:-0.8360000000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1075599999999999em;"><span style="top:-2.3139999999999996em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8360000000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>其中，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>h</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">w_0,h_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02691em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>是屏幕的尺寸，可以直接用尺子量，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(x,y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span>也是实际位置，同样用尺子量出来。如果选框比实际的触摸位置先到桌面右下角的话，就是物理分辨率输入得太小了，反过来调整就行。</p>
+<p>这样反复调整几次（也不知道是几次）以后，终于可以获得说得过去的触控操作了。</p>
+<p>不过还需要用专门的校准工具来校准屏幕，这里使用<code>xinput-calibrator</code>，这是Xorg提供的校准程序，不依赖于具体硬件。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install xinput-calibrator</span><br><span class="line">$ sudo xinput_calibrator</span><br></pre></td></tr></table></figure>
+<p>这时<code>xinput-calibrator</code>应当已经能检测到触摸屏并启动校准，只需依次点击灰色背景上的四个白色十字即可完成校准。校准后，程序会输出一些信息到终端，按照提示将其复制到<code>/etc/X11/xorg.conf.d/99-calibration.conf</code>中（我的系统中并没有这个文件，所以手动创建了一个）。为保险起见，另一个提示的目录<code>/usr/share/X11/xorg.conf.d</code>中也放置一个相同的文件。</p>
+<p>到这时，我终于可以用触摸屏了。</p>
+<p>接下来各种体验操作就随意了，果然Ubuntu还是比Windows占资源少啊，即使我用Gnome桌面也没怎么卡顿。那么就愉快地决定了：放弃Windows 10！</p>
+<p><br /><br /></p>
+<h2 id="正式安装和使用">正式安装和使用</h2>
+<p>重新插入U盘启动，这次选择完整安装，并且直接清除整个硬盘安装Ubuntu，一切顺利。</p>
+<p>由于之前试用的系统已经没有了，所以需要重新安装<code>gslx680_ts_acpi</code>，重复上面的过程使触摸屏正常工作。</p>
+<p>虽然现在触摸板的问题依然没有解决，不过这个不重要啦，反正有触屏也足够了。</p>
+<p>接下来又遇到一个问题：Ubuntu对触摸屏设备的支持并不是很好，Firefox很难滚屏，一旦滑动就会选中页面上的文字。好在这个问题的解决方案不难查到，需要修改Firefox的<code>.desktop</code>文件中的<code>Exec</code>属性，我的Firefox安装在<code>/opt/firefox</code>下，就改为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exec&#x3D;env MOZ_USE_XINPUT2&#x3D;1 &#x2F;opt&#x2F;firefox&#x2F;firefox</span><br></pre></td></tr></table></figure>
+<p>备用的方案还有强行修改<code>about:config</code>等，不过这个方案工作正常，不用作这样的修改了。</p>
+<p>具体可见：<a target="_blank" rel="noopener" href="https://www.kutu66.com/ubuntu/article_165070">在 Firefox 中，Ubuntu 16和触摸屏滚动
+</a></p>
+<p>因为Firefox比较占内存，所以又安装了Foxit Reader来阅读PDF。</p>
+<p>另外准备尝试着安装wine来运行Kindle for PC，用来看在Amazon上买的电子书（主要是数学类的，不方便在Kindle上看）。</p>
+<p>对于笔记和代码来说，还是用习惯了的VS Code，基本的<code>C++/Python/Markdown All in One</code>三个插件一上就能用了。之所以我一直喜欢<code>Markdown All in One</code>而不是<code>Markdown Preview Enhanced</code>作为我的markdown插件，是因为工科生的笔记里公式太多，用KaTeX渲染的<code>Markdown All in One</code>对性能的要求比Mathjax要低很多。</p>
+<p>上几张自己的笔记，向大家证明一下用平板记笔记也不只有OneNote或者EverNote，用键盘也是可以的～</p>
+<p><img src="https://i.loli.net/2020/02/08/3BnglmhFytNxrSM.jpg" alt="notes-1.png"></p>
+<p><img src="https://i.loli.net/2020/02/08/fDzeAoRdup7vTyP.png" alt="notes-2.png"></p>
+<p><img src="https://i.loli.net/2020/02/08/JYh9pKfmZGXwQr4.png" alt="notes-3.png"></p>
+<p><br /><br /></p>
+<h2 id="后记">后记</h2>
+<blockquote>
+<p>工科生就是喜欢折腾。</p>
+</blockquote>
+<p>好吧，也许这是我自作多情，但是折腾来折腾去，总归获得了一些对Ubuntu硬件设备驱动的了解。再说了，疫情当头、自我隔离之际，总要找些事情做——一边气得咒骂一边却还不想放下的事情，似乎也算是个不错的选择了？</p>
+<p>大概体会了一下所谓的</p>
+<blockquote>
+<p>Linux is free when your time is free.</p>
+</blockquote>
+<p>随后我会发起一个Pull Request，把自己测试Jumper Ezpad 7s的参数传到<a target="_blank" rel="noopener" href="https://github.com/onitake/gsl-firmware">gsl-firmware</a>项目中去，不知道这样算不算得上栽树，有没有后人来乘凉（笑）。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/rss2.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E7%94%9F%E6%B4%BB/" rel="tag"># 生活</a>
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/24%E7%AD%89%E5%88%86%E8%9D%8E%E5%AD%90/" rel="prev" title="24等分蝎子">
+                  <i class="fa fa-chevron-left"></i> 24等分蝎子
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" rel="next" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解">
+                  OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">陕ICP备20002523号 </a>
+      <img src="http://www.beian.gov.cn/portal/download?token=db407f07-ac44-4cc2-ac74-e3e3cc48784b" style="display: inline-block;"><a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=61010302000579" rel="noopener" target="_blank">陕公网安备 61010302000579号 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">greyishsong</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+<script>
+if (document.querySelectorAll('.mermaid').length) {
+  NexT.utils.getScript('https://cdn.jsdelivr.net/npm/mermaid@8.9.1/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'neutral',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+
+
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+
+
+</body>
+</html>
