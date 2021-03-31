@@ -89,6 +89,190 @@
       </tags>
   </entry>
   <entry>
+    <title>RSS：订回你熟悉的报纸</title>
+    <url>/RSS%EF%BC%9A%E8%AE%A2%E5%9B%9E%E4%BD%A0%E7%86%9F%E6%82%89%E7%9A%84%E6%8A%A5%E7%BA%B8/</url>
+    <content><![CDATA[<p>终于做完了一项工作，在阳光或者月光下长出一口气，想要看看自己感兴趣的消息。微信、头条、知乎、B站，光大众的平台就有好多；想起果壳、领研、站酷、Dribble，又要进收藏夹去清灰了。</p>
+<p>只要到楼下邮箱把一摞报纸书刊拿回来，就能靠在椅背上随便翻看的日子毕竟已经过去，今天免不了要到一个个平台上关注、订阅、查看更新。</p>
+<p>问题是：看了奥利奥，推荐粤利粤；看了六个核桃，推荐大个核桃。更糟糕的是：平时看了那么多吃的，今天想看看时政要闻，发现首页早就是百货超市，找不到报刊亭了。</p>
+<p>简单点，我想要Really Simple Syndication，不想在App的孤岛间跳来跳去，看只懂得迎合自己的“个性化”推荐。</p>
+<span id="more"></span>
+<h2 id="RSS是什么？">RSS是什么？</h2>
+<p>RSS，真的是Really Simple的Syndication。这么随便的全称，一看就不是上市公司起的。</p>
+<p>正式译名叫做简易信息聚合，只需要提供好信息来源（RSS源），就可以快速地将所有来源的信息放进一个聚合起来的终端里。正如纸媒时代订阅的报纸和杂志，下楼看看邮箱，就能收到人民日报、南华早报，把看天下、国家地理和时尚芭莎一起抱回家。</p>
+<p>在互联网上，完成这一切的就是RSS订阅。它只是一种协议，告诉信息来源按照怎样的格式就可以生成可以被订阅的信息，并不受任何公司掌控——就好像楼下的邮箱不会由哪个报社来管理一样，它只归邮政。只要报纸还对社会开放出售，就不妨碍你将它订到自己的邮箱里。</p>
+<p><img src="https://i.loli.net/2020/03/29/Azp1v2UH93Ww48Q.png" alt="RSS-example.png"></p>
+<p>比如，上图中用Thunderbird作为阅读器，订阅了一些信息源，它们可能来自不同的网站或者媒体，但是打开阅读器就能看到所有的内容。</p>
+<br>
+<h2 id="如何使用">如何使用</h2>
+<h3 id="获取RSS源">获取RSS源</h3>
+<p>这里就厚颜以订阅在下博客的源为例：</p>
+<p>首先从网站上找到RSS订阅相关的链接、图标等内容，获取RSS源的链接。</p>
+<p>从PC端浏览器访问，本站的RSS链接在侧边栏位置，就在我的头像下方的RSS图标处：</p>
+<p><img src="https://i.loli.net/2020/04/23/RtPVvwKyNY1oFlD.png" alt="to-rss.png"></p>
+<p>移动端的页面没有侧边栏，可以直接复制链接：</p>
+<ul>
+<li><a href="https://greyishsong.ink/rss2.xml">https://greyishsong.ink/rss2.xml</a></li>
+</ul>
+<p>这就是RSS源的链接。但是，打开之后并不能直接阅读，需要将这个链接复制到阅读器中进行订阅。</p>
+<h3 id="RSS阅读器">RSS阅读器</h3>
+<p>RSS源没法直接阅读，需要依赖阅读器。相较于各种需要下载的工具，网页端是最方便的，只要打开网页注册就行。</p>
+<p>网页端最出名的就是Inoreader了，虽然默认是英文网站，但也全面支持中文，只要进入后在右上角选择语言为简体中文即可。<del>相对来说速度可能稍慢，不过并无大碍。</del><ins>Inoreader疑似受到攻击，目前只能直接通过IP地址访问或者通过非常规手段访问，手动修改hosts解析DNS亦无效。</ins></p>
+<ul>
+<li>Inoreader：<a href="https://www.inoreader.com/?lang=zh_CN">https://www.inoreader.com/</a></li>
+</ul>
+<p>提供一个备选项：</p>
+<ul>
+<li>深蓝阅读<a href="https://bluereader.org/">https://bluereader.org/</a></li>
+</ul>
+<p>桌面端可用的阅读器有很多，就不一一介绍了，主推几个相对熟悉的：</p>
+<ul>
+<li>正常情况下，在Microsoft Office套件中，都会包含有Outlook这个邮件客户端，它也可以用来很方便地订阅RSS源。具体可见：<a href="https://support.office.com/zh-cn/article/%E4%BB%80%E4%B9%88%E6%98%AF-RSS-%E6%BA%90%EF%BC%9F-e8aaebc3-a0a7-40cd-9e10-88f9c1e74b97">微软官方文档-什么是RSS源？</a>
+<ul>
+<li>Outlook默认不会加载任何外部图片，所以需要到<code>文件-&gt;选项-&gt;信任中心-&gt;信任中心设置-&gt;自动下载</code>中，将<code>不自动下载标准HTML电子邮件或RSS项目中的图片</code>这一项去掉，才能看到订阅内容中的图片。</li>
+</ul>
+</li>
+<li>Mozilla通常因为Firefox浏览器而出名，它的另一款产品Thunderbird也可以用来作为RSS阅读器，虽然使用起来稍微复杂，但是阅读体验更好。具体可见：<a href="https://support.mozilla.org/zh-CN/kb/%E5%A6%82%E4%BD%95%E8%AE%A2%E9%98%85%E6%96%B0%E9%97%BB%E6%94%B6%E5%8F%96%E7%82%B9%E5%92%8C%E5%8D%9A%E5%AE%A2">Thunderbird-如何订阅新闻收取点和博客</a>
+<ul>
+<li>Thunderbird在Linux下同样可用。</li>
+<li>新版Thunderbird与Firefox浏览器使用同样的内核，可以加载动态效果、TeX公式等由javascript支持的内容。</li>
+</ul>
+</li>
+<li>irreader：和前两个兼职的邮件客户端不同，是专门的RSS阅读器，有清爽简单的界面和强大的自定义订阅功能。下载可见：<a href="http://irreader.fatecore.com/">irreader阅读器</a>
+<ul>
+<li>irreader在Mac OS下同样可用。</li>
+</ul>
+</li>
+</ul>
+<p>移动端：RSS当下式微，相关的移动端应用不少但是经常不尽如人意。iOS系统的用户可以去Appstore里下载Inoreader客户端，安卓用户建议直接访问网页端。</p>
+<br>
+<h2 id="如果找不到RSS源呢？">如果找不到RSS源呢？</h2>
+<p>支持RSS订阅的网站往往会</p>
+<ul>
+<li>将<code>RSS订阅</code>或者那个像WiFi信号一样的的标志放在顶栏、侧栏、底部等位置</li>
+<li>在网站域名后加<code>/feed</code>、<code>/rss</code>、<code>/rss.xml</code>、<code>/rss2.xml</code>可以直接访问到RSS源，有时也会是<code>/atom.xml</code>（这是使用了atom协议的订阅源，不过不影响使用就是了）</li>
+</ul>
+<p>但是这样<strong>并不一定能</strong>找到RSS源。</p>
+<p>当今App孤岛化严重，知乎、Bilibili等平台并不提供RSS源，微信公众号甚至不对搜索引擎开放，遑论制作RSS源了。</p>
+<p>对于这种情况，有一些网站给出了解决方案：</p>
+<ul>
+<li>RSSHub：<a href="https://docs.rsshub.app/">https://docs.rsshub.app/</a>
+<ul>
+<li>这个网站集中了大量已经制作好的RSS源（甚至包括了<strong>很多大学的教务处</strong>），可以添加到订阅列表中。</li>
+</ul>
+</li>
+<li>微信公众号RSS订阅源分享站：<a href="https://www.rss.wiki/">https://www.rss.wiki/</a>
+<ul>
+<li>这个网站集中了大量微信公众号的RSS源，可以按需使用。</li>
+</ul>
+</li>
+</ul>
+<br>
+<h2 id="RSS能订阅到什么？">RSS能订阅到什么？</h2>
+<p>配合RSSHub等工具，RSS订阅可以覆盖大多数日常访问的站点，包括但不限于：</p>
+<ul>
+<li>社交媒体：微信公众号、知乎、Bilibili、豆瓣、微博</li>
+<li>传统媒体：人民日报、卫报、南方周末等等</li>
+<li>论坛：Discuz、V2EX、百度贴吧</li>
+<li>设计：Dribble、站酷、UI中国</li>
+<li>编程：GitHub、AI研习社、开源中国</li>
+</ul>
+<p>RSSHub甚至将很多大学的教务通知网站制作成了RSS源，一次订阅，免去各种翻看通知的麻烦！</p>
+<p>除此以外，像Inoreader这样支持搜索的阅读器，还可以搜索到不少外文的新闻媒体，用来练习外语也很不错。</p>
+<p>读者可能注意到RSSHub的官方说明中提到了自建服务器，我也搭建了自己的RSSHub服务，如果有需要的同好请邮件联系我（当然，知道的话其他联系方式也可以），我会酌情考虑共享服务。没有公开是因为自己的服务器性能实在有限，不能承受大量的访问。</p>
+<p><br><br><br></p>
+<p>RSS并不一定是信息获取的最佳方案，但是确实是一个可以避开无处不在的算法推荐的方案。它也是对互联网孤岛化的一种反抗——因为它来自那个田园时代。</p>
+<p>推荐的声音太大，吵吵嚷嚷的。</p>
+<p>虽然楼下的邮箱大多已经消失了，但是午后读报的轻松感不应该消失。一捆报纸，不应该因为来自十家不同的报社，就要跑十个报刊亭才能买到。</p>
+<br>
+<p>不过应该注意到的是：正如在文艺复兴的时代怀念“高贵的野蛮人”一样，在当今的时代怀念互联网的“田园时代”不应该是解决问题的正道。原始时代确实没有阶级的分化，甚至几乎没有贫富的差别，但今天的我们并不会愿意返回原始时代，因为原始时代的平等大多来自于匮乏。</p>
+<p>如果完全不能够在算法推荐的洪流中掌控自我，那么在同样海量的订阅源中也未必能。RSS提供了自主选择的机会，从而提供了一种“自我负责”的方式，观点的偏激和时间的浪费不再有算法来做替罪羊，只能自我检视。</p>
+<p>在此警示自己：认真挑选和控制自己的订阅源，无人左右时，慎独慎读。愿与读者共勉。</p>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>生活</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</title>
+    <url>/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/</url>
+    <content><![CDATA[<p>最初因为大创项目，接触了 OpenStack 相关的知识。但重点不在网络，所以对于其中可以随便定义、删除的网络只是有点好奇，没有多想。恰逢软件定义网络课程实验之要求，上手尝试 SDN 的相关实验，试着折腾这个不怕玩坏的网络。</p>
+<p>然而尝试之初不免遇到问题，在此简短记述以备查阅，并可作同道者参考。如有问题，欢迎斧正。</p>
+<span id="more"></span>
+<h2 id="Mininet">Mininet</h2>
+<p>按照<a href="http://mininet.org/">官网</a>上的描述，Mininet 是一个强大的 SDN 实验环境，可以在单机上完成各种网络拓扑的测试。然而如果把他的代码仓库 clone 下来，会发现代码量真的不是很大——不像是一个大型框架的样子。</p>
+<p>大致阅读一下源码，或者将其在<code>debug</code>级别下启动，就会发现 Mininet 是通过包装 SDN 工具命令来实现构建拓扑的，所以其核心管理功能并不包含软件定义网络的数据平面；而重要的控制节点，也使用外部的<code>ovs-testcontroller</code>或者<code>pox</code>、<code>ryu</code>等等。本质上，Mininet 用于构建网络的操作，也<strong>都是可以手动完成</strong>的。不过 Mininet 用一个进程来模拟一个 host，让每个 host 可以调用宿主机上几乎所有的程序，确实带来了非常大的方便。</p>
+<h3 id="安装">安装</h3>
+<p><a href="http://mininet.org/download/">官方文档</a>已经给出了各种安装方案，截至目前，各种方案的版本和环境如下：</p>
+<ul>
+<li>虚拟机镜像：官方已迁移至 Ubuntu 20.04 LTS，在 GitHub Releases 上可以下载。</li>
+<li>包管理器：Ubuntu 18.04/20.04 LTS 下，均更新到2.2版本。</li>
+<li>源码安装：最新的稳定版本为2.3.0版本。</li>
+</ul>
+<p>需要注意的是，即使是最新的 Ubuntu 发行版，软件源中也没有最新版的 Mininet 。考虑到 Mininet 是大学开发的教学实验用软件，我认为在新系统下，追最新版本是没问题的。当前 Mininet 官方已经完成了向 Python3 的迁移，也鼓励用户迁移到 Python3，不过 POX 控制器仍然只能在 Python2 下运行。</p>
+<p>我本机的环境是 Kubuntu 20.04 LTS, Mininet 2.3.0，附带安装了 POX, Ryu 和 Wireshark。很推荐源码安装时的<code>-w</code>选项，安装后 Wireshark 就能分清 OpenFlow 的不同 tag，从而能单独抓取某个虚拟交换机的数据。</p>
+<h3 id="问题排查和解决">问题排查和解决</h3>
+<p>其实这个问题出现得挺让我哭笑不得的。</p>
+<p>安装之初，我按照文档说明，进行最简单的测试：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo mn --<span class="built_in">test</span> pingall</span></span><br></pre></td></tr></table></figure>
+<p>只见每个节点之间 ping 的结果都正常，Mininet 的统计结果却非说节点都不通，还有报错：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">h1 -&gt; h2</span><br><span class="line">*** Error: could not parse ping output: PING h2 (10.0.0.2) 56(84) bytes of data.</span><br><span class="line">64 比特，来自 h2 (10.0.0.2): icmp_seq&#x3D;1 ttl&#x3D;49 时间&#x3D;35.4 毫秒</span><br><span class="line"></span><br><span class="line">--- h2 ping 统计 ---</span><br><span class="line">已发送 1 个包， 已接收 1 个包, 0% 包丢失, 耗时 0 毫秒</span><br><span class="line">rtt min&#x2F;avg&#x2F;max&#x2F;mdev &#x3D; 35.388&#x2F;35.388&#x2F;35.388&#x2F;0.000 ms</span><br><span class="line">X</span><br></pre></td></tr></table></figure>
+<p>翻遍了文档、GitHub Issue、StackOverflow，我也没找到什么解释。不服得很，遂翻找源码。源码组织得比较整齐，于是很快找到了解析 ping 输出的部分：就在<code>mininet/mininet/net.py</code>当中，是<code>Mininet</code>类的一个方法。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@staticmethod</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_parsePing</span>(<span class="params"> pingOutput </span>):</span></span><br><span class="line">    <span class="string">&quot;Parse ping output and return packets sent, received.&quot;</span></span><br><span class="line">    <span class="comment"># Check for downed link</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;connect: Network is unreachable&#x27;</span> <span class="keyword">in</span> pingOutput:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>, <span class="number">0</span></span><br><span class="line">    r = <span class="string">r&#x27;(\d+) packets transmitted, (\d+)( packets)? received&#x27;</span></span><br><span class="line">    m = re.search( r, pingOutput )</span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        error( <span class="string">&#x27;*** Error: could not parse ping output: %s\n&#x27;</span> %</span><br><span class="line">                pingOutput )</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>, <span class="number">0</span></span><br><span class="line">    sent, received = <span class="built_in">int</span>( m.group( <span class="number">1</span> ) ), <span class="built_in">int</span>( m.group( <span class="number">2</span> ) )</span><br><span class="line">    <span class="keyword">return</span> sent, received</span><br></pre></td></tr></table></figure>
+<p>一看之下，直笑过去了。本以为是调了哪个系统级的 lib 之类，拿着返回值在解析，谁知是直接把<code>ping</code>命令的输出文字拿来正则匹配了，真有点儿倒拔垂杨柳式的蛮力。</p>
+<p>问题其实已经明了：我的 Linux 是双系统，打算长期使用的，因此配置了中文环境、中文输入法种种，<code>ping</code>命令的输出<strong>也被本地化成了中文</strong>。这样一来，用来匹配英文输出的正则永远失败，Mininet 就认为<code>ping</code>都不通。</p>
+<p>我考虑的解决方法是设置临时环境变量。根据以前对 Linux 的了解，本地化工作应该受<code>LANG</code>这个环境变量控制，于是改变运行 Mininet 的方式：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo LANG=en_US mn --<span class="built_in">test</span> pingall</span></span><br></pre></td></tr></table></figure>
+<p>以期 Linux 按照<code>en_US</code>来本地化输出，避免输出中文。结果是成功的，不过总这样有点麻烦，可以设置别名：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">alias sudo=&#x27;sudo &#x27;</span><br><span class="line">alias mn=&#x27;LANG=en_US mn&#x27;</span><br></pre></td></tr></table></figure>
+<p>第一条让<code>sudo</code>命令也查找别名（默认是不查找的），第二条就是设置语言环境。这两个别名要全局生效，可以放在<code>/etc/profile</code>或者<code>/etc/bash.bashrc</code>当中。</p>
+<blockquote>
+<p>装系统只为用来实验、语言环境是英文的同学，完全不会有这个问题——这就是各种资料上找不到的原因。</p>
+</blockquote>
+<h2 id="Fat-Tree-拓扑的搭建">Fat-Tree 拓扑的搭建</h2>
+<blockquote>
+<p>关于 Fat-Tree，我参考的主要是这篇文章：
+<a href="https://blog.csdn.net/baidu_20163013/article/details/110004560">Fat-tree：A Scalable, Commodity Data Center Network Architecture 解读</a></p>
+</blockquote>
+<p>在构建 Fat-Tree 时，我是用自底向上的顺序连接节点，将每个 Pod 都存放在一个 Object 里。具体代码就不贴了，想来思路上大同小异，不会有太多的差别。</p>
+<p>在实现了一个<code>FatTreeTopo</code>类之后，我用一个小函数来测试：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">doTest</span>():</span></span><br><span class="line">    topo = FatTreeTopo(k=<span class="number">4</span>)</span><br><span class="line">    net = Mininet(topo)</span><br><span class="line">    net.start()</span><br><span class="line">    net.waitConnected()</span><br><span class="line">    CLI(net)</span><br><span class="line">    net.stop()</span><br></pre></td></tr></table></figure>
+<p>然而在解决了上面的一切问题后，还是所有的<code>ping</code>都不通，且这次是真的不通了，<code>h1 ping -c1 h4</code>这样的命令显示完全是访问不到的。于是先尝试着建一个 k = 2 的 Fat-Tree，每个 Pod 只有两台交换机，方便调试。奇怪的是，在 k = 2 的情况下，一切都工作正常。</p>
+<p>在没有头绪的情况下，我只好重新建起 k = 4 的拓扑，再打开 Wireshark 抓包。这里让<code>h1</code>连续尝试<code>ping</code>另一个 Pod 的主机<code>h6</code>，让 Wireshark 抓取连接了<code>h1</code>的边缘交换机上通过的数据包，过滤规则是<code>icmp</code>。当我在<code>h1</code>上发起<code>ping</code>时，发现根本抓不到想要的 ICMPv4 数据包，只有疯狂刷屏的 ICMPv6 包，<code>h1</code>发出的 ARP 包完全淹没在其中，<code>h6</code>连 ARP 应答都没有作出。</p>
+<p>又是一阵好找，找着找着摸到一点线索：k = 4 和 k = 2 情况最大的不同，应该是拓扑中<strong>出现了环路</strong>。这时，用来探测网络连接、更新路由等信息的数据包可能形成广播风暴，让网络处于极度拥塞的状态下。最终搜出了官方 Wiki 上的一条解答：</p>
+<blockquote>
+<p><a href="https://github.com/mininet/mininet/wiki/FAQ#ethernet-loops">Why does my controller, which implements an Ethernet bridge or learning switch, not work with my network which has loops in it? I can't ping anything!</a></p>
+</blockquote>
+<p>其中提到，在这种情况下，应该为网络开启生成树协议（STP），这样可以明确转发路径，进而避免数据包在一个环上来回转发。对应到实现上，需要修改的是<code>addSwitch</code>部分，为其增加一些参数：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">switchOpts = &#123;<span class="string">&#x27;cls&#x27;</span>: OVSBridge,<span class="string">&#x27;stp&#x27;</span>: <span class="number">1</span>&#125;</span><br><span class="line">addSwitch(<span class="string">&#x27;sxx&#x27;</span>, **switchOpts)</span><br></pre></td></tr></table></figure>
+<p>这里指定使用<code>OVSBridge</code>类型的交换机，<code>stp=1</code>开启 STP 协议。另外，开启 STP 后需要等待交换机连接，所以脚本中</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">net.waitConnected()</span><br></pre></td></tr></table></figure>
+<p>是必不可少的，在连接上之前，网络都是不通的。或者也可以在 CLI 下调用这个方法：（启动时创建的<code>Mininet</code>实例一般都叫做<code>net</code>）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">mininet&gt;</span><span class="bash"> py net.waitConnected()</span></span><br></pre></td></tr></table></figure>
+<p>再启动拓扑进行测试，一切就都符合预期了。</p>
+<h2 id="一些其他用途">一些其他用途</h2>
+<p>Mininet 用来当网络测试工具也不错。在启动时，加上 NAT 选项，就可以让 host 接入外部网络：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo mn --nat</span></span><br></pre></td></tr></table></figure>
+<p>这个网络环境非常干净、简单（没防火墙、没拥塞，甚至没多少流量），还比用多台虚拟机组网轻量许多。通过 Xterm 或者 SSH 连接到 host 之后，网络实验中的 ARP 攻击、DNS 攻击等等都可以在这里尝试，并且<strong>完全没有后遗症</strong>。<code>sudo mn -c</code>之后，一切灰飞烟灭不留痕迹，纵然南朝四百八十寺，再无楼台烟雨中。</p>
+<blockquote>
+<p>一点小问题：host 的 DNS 解析跟随宿主机设置，所以如果系统中有<code>systemd-resolved</code>这个服务，需要暂时将<code>/etc/resolv.conf</code>这个文件中的<code>nameserver</code>项修改成一个可用的 DNS 服务器地址。
+原先的<code>nameserver</code>一般是<code>127.0.0.53</code>，这是<code>systemd-resolved</code>维护的一个本地 DNS，经过它指向真正的 DNS 服务器，但是 Mininet 并不能使用这个东西。
+注意玩完之后，还是把这一项该回来为好，虽说哪怕不改重启后也会恢复。</p>
+</blockquote>
+<p>另外，在<code>addLink</code>时，Mininet 提供了限制带宽的选项。如果想要观察拥塞之类的现象，完全可以在添加连接时就把带宽限得很低，本机上的网络环境总是比复杂的外网要好下手许多。</p>
+]]></content>
+      <categories>
+        <category>编程</category>
+      </categories>
+      <tags>
+        <tag>SDN</tag>
+        <tag>软件定义网络</tag>
+        <tag>Mininet</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>凸优化（一）：凸函数判定方法的证明</title>
     <url>/%E5%87%B8%E4%BC%98%E5%8C%96%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%87%B8%E5%87%BD%E6%95%B0%E5%88%A4%E5%AE%9A%E6%96%B9%E6%B3%95%E7%9A%84%E8%AF%81%E6%98%8E/</url>
     <content><![CDATA[<p>刚刚起步学习凸优化的过程实在伴随着种种<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">C</mi><msub><mi mathvariant="normal">H</mi><mn>3</mn></msub><mo stretchy="false">(</mo><mi mathvariant="normal">C</mi><msub><mi mathvariant="normal">H</mi><mn>2</mn></msub><msub><mo stretchy="false">)</mo><mn>6</mn></msub><mi mathvariant="normal">C</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">O</mi><mi mathvariant="normal">H</mi></mrow><annotation encoding="application/x-tex">\rm CH_3(CH_2)_6COOH</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathrm">C</span><span class="mord"><span class="mord mathrm">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathrm mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathrm">C</span><span class="mord"><span class="mord mathrm">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathrm mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathrm mtight">6</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathrm">C</span><span class="mord mathrm">O</span><span class="mord mathrm">O</span><span class="mord mathrm">H</span></span></span></span></span>。在笔记之余，也写写自己对一些小问题的证明思路和从教材上受到的启发。这些东西整理成笔记有些麻烦，又不想忘掉，就发在博客上吧。</p>
@@ -238,113 +422,6 @@
         <tag>凸优化</tag>
         <tag>优化方法</tag>
         <tag>课程</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>RSS：订回你熟悉的报纸</title>
-    <url>/RSS%EF%BC%9A%E8%AE%A2%E5%9B%9E%E4%BD%A0%E7%86%9F%E6%82%89%E7%9A%84%E6%8A%A5%E7%BA%B8/</url>
-    <content><![CDATA[<p>终于做完了一项工作，在阳光或者月光下长出一口气，想要看看自己感兴趣的消息。微信、头条、知乎、B站，光大众的平台就有好多；想起果壳、领研、站酷、Dribble，又要进收藏夹去清灰了。</p>
-<p>只要到楼下邮箱把一摞报纸书刊拿回来，就能靠在椅背上随便翻看的日子毕竟已经过去，今天免不了要到一个个平台上关注、订阅、查看更新。</p>
-<p>问题是：看了奥利奥，推荐粤利粤；看了六个核桃，推荐大个核桃。更糟糕的是：平时看了那么多吃的，今天想看看时政要闻，发现首页早就是百货超市，找不到报刊亭了。</p>
-<p>简单点，我想要Really Simple Syndication，不想在App的孤岛间跳来跳去，看只懂得迎合自己的“个性化”推荐。</p>
-<span id="more"></span>
-<h2 id="RSS是什么？">RSS是什么？</h2>
-<p>RSS，真的是Really Simple的Syndication。这么随便的全称，一看就不是上市公司起的。</p>
-<p>正式译名叫做简易信息聚合，只需要提供好信息来源（RSS源），就可以快速地将所有来源的信息放进一个聚合起来的终端里。正如纸媒时代订阅的报纸和杂志，下楼看看邮箱，就能收到人民日报、南华早报，把看天下、国家地理和时尚芭莎一起抱回家。</p>
-<p>在互联网上，完成这一切的就是RSS订阅。它只是一种协议，告诉信息来源按照怎样的格式就可以生成可以被订阅的信息，并不受任何公司掌控——就好像楼下的邮箱不会由哪个报社来管理一样，它只归邮政。只要报纸还对社会开放出售，就不妨碍你将它订到自己的邮箱里。</p>
-<p><img src="https://i.loli.net/2020/03/29/Azp1v2UH93Ww48Q.png" alt="RSS-example.png"></p>
-<p>比如，上图中用Thunderbird作为阅读器，订阅了一些信息源，它们可能来自不同的网站或者媒体，但是打开阅读器就能看到所有的内容。</p>
-<br>
-<h2 id="如何使用">如何使用</h2>
-<h3 id="获取RSS源">获取RSS源</h3>
-<p>这里就厚颜以订阅在下博客的源为例：</p>
-<p>首先从网站上找到RSS订阅相关的链接、图标等内容，获取RSS源的链接。</p>
-<p>从PC端浏览器访问，本站的RSS链接在侧边栏位置，就在我的头像下方的RSS图标处：</p>
-<p><img src="https://i.loli.net/2020/04/23/RtPVvwKyNY1oFlD.png" alt="to-rss.png"></p>
-<p>移动端的页面没有侧边栏，可以直接复制链接：</p>
-<ul>
-<li><a href="https://greyishsong.ink/rss2.xml">https://greyishsong.ink/rss2.xml</a></li>
-</ul>
-<p>这就是RSS源的链接。但是，打开之后并不能直接阅读，需要将这个链接复制到阅读器中进行订阅。</p>
-<h3 id="RSS阅读器">RSS阅读器</h3>
-<p>RSS源没法直接阅读，需要依赖阅读器。相较于各种需要下载的工具，网页端是最方便的，只要打开网页注册就行。</p>
-<p>网页端最出名的就是Inoreader了，虽然默认是英文网站，但也全面支持中文，只要进入后在右上角选择语言为简体中文即可。<del>相对来说速度可能稍慢，不过并无大碍。</del><ins>Inoreader疑似受到攻击，目前只能直接通过IP地址访问或者通过非常规手段访问，手动修改hosts解析DNS亦无效。</ins></p>
-<ul>
-<li>Inoreader：<a href="https://www.inoreader.com/?lang=zh_CN">https://www.inoreader.com/</a></li>
-</ul>
-<p>提供一个备选项：</p>
-<ul>
-<li>深蓝阅读<a href="https://bluereader.org/">https://bluereader.org/</a></li>
-</ul>
-<p>桌面端可用的阅读器有很多，就不一一介绍了，主推几个相对熟悉的：</p>
-<ul>
-<li>正常情况下，在Microsoft Office套件中，都会包含有Outlook这个邮件客户端，它也可以用来很方便地订阅RSS源。具体可见：<a href="https://support.office.com/zh-cn/article/%E4%BB%80%E4%B9%88%E6%98%AF-RSS-%E6%BA%90%EF%BC%9F-e8aaebc3-a0a7-40cd-9e10-88f9c1e74b97">微软官方文档-什么是RSS源？</a>
-<ul>
-<li>Outlook默认不会加载任何外部图片，所以需要到<code>文件-&gt;选项-&gt;信任中心-&gt;信任中心设置-&gt;自动下载</code>中，将<code>不自动下载标准HTML电子邮件或RSS项目中的图片</code>这一项去掉，才能看到订阅内容中的图片。</li>
-</ul>
-</li>
-<li>Mozilla通常因为Firefox浏览器而出名，它的另一款产品Thunderbird也可以用来作为RSS阅读器，虽然使用起来稍微复杂，但是阅读体验更好。具体可见：<a href="https://support.mozilla.org/zh-CN/kb/%E5%A6%82%E4%BD%95%E8%AE%A2%E9%98%85%E6%96%B0%E9%97%BB%E6%94%B6%E5%8F%96%E7%82%B9%E5%92%8C%E5%8D%9A%E5%AE%A2">Thunderbird-如何订阅新闻收取点和博客</a>
-<ul>
-<li>Thunderbird在Linux下同样可用。</li>
-<li>新版Thunderbird与Firefox浏览器使用同样的内核，可以加载动态效果、TeX公式等由javascript支持的内容。</li>
-</ul>
-</li>
-<li>irreader：和前两个兼职的邮件客户端不同，是专门的RSS阅读器，有清爽简单的界面和强大的自定义订阅功能。下载可见：<a href="http://irreader.fatecore.com/">irreader阅读器</a>
-<ul>
-<li>irreader在Mac OS下同样可用。</li>
-</ul>
-</li>
-</ul>
-<p>移动端：RSS当下式微，相关的移动端应用不少但是经常不尽如人意。iOS系统的用户可以去Appstore里下载Inoreader客户端，安卓用户建议直接访问网页端。</p>
-<br>
-<h2 id="如果找不到RSS源呢？">如果找不到RSS源呢？</h2>
-<p>支持RSS订阅的网站往往会</p>
-<ul>
-<li>将<code>RSS订阅</code>或者那个像WiFi信号一样的的标志放在顶栏、侧栏、底部等位置</li>
-<li>在网站域名后加<code>/feed</code>、<code>/rss</code>、<code>/rss.xml</code>、<code>/rss2.xml</code>可以直接访问到RSS源，有时也会是<code>/atom.xml</code>（这是使用了atom协议的订阅源，不过不影响使用就是了）</li>
-</ul>
-<p>但是这样<strong>并不一定能</strong>找到RSS源。</p>
-<p>当今App孤岛化严重，知乎、Bilibili等平台并不提供RSS源，微信公众号甚至不对搜索引擎开放，遑论制作RSS源了。</p>
-<p>对于这种情况，有一些网站给出了解决方案：</p>
-<ul>
-<li>RSSHub：<a href="https://docs.rsshub.app/">https://docs.rsshub.app/</a>
-<ul>
-<li>这个网站集中了大量已经制作好的RSS源（甚至包括了<strong>很多大学的教务处</strong>），可以添加到订阅列表中。</li>
-</ul>
-</li>
-<li>微信公众号RSS订阅源分享站：<a href="https://www.rss.wiki/">https://www.rss.wiki/</a>
-<ul>
-<li>这个网站集中了大量微信公众号的RSS源，可以按需使用。</li>
-</ul>
-</li>
-</ul>
-<br>
-<h2 id="RSS能订阅到什么？">RSS能订阅到什么？</h2>
-<p>配合RSSHub等工具，RSS订阅可以覆盖大多数日常访问的站点，包括但不限于：</p>
-<ul>
-<li>社交媒体：微信公众号、知乎、Bilibili、豆瓣、微博</li>
-<li>传统媒体：人民日报、卫报、南方周末等等</li>
-<li>论坛：Discuz、V2EX、百度贴吧</li>
-<li>设计：Dribble、站酷、UI中国</li>
-<li>编程：GitHub、AI研习社、开源中国</li>
-</ul>
-<p>RSSHub甚至将很多大学的教务通知网站制作成了RSS源，一次订阅，免去各种翻看通知的麻烦！</p>
-<p>除此以外，像Inoreader这样支持搜索的阅读器，还可以搜索到不少外文的新闻媒体，用来练习外语也很不错。</p>
-<p>读者可能注意到RSSHub的官方说明中提到了自建服务器，我也搭建了自己的RSSHub服务，如果有需要的同好请邮件联系我（当然，知道的话其他联系方式也可以），我会酌情考虑共享服务。没有公开是因为自己的服务器性能实在有限，不能承受大量的访问。</p>
-<p><br><br><br></p>
-<p>RSS并不一定是信息获取的最佳方案，但是确实是一个可以避开无处不在的算法推荐的方案。它也是对互联网孤岛化的一种反抗——因为它来自那个田园时代。</p>
-<p>推荐的声音太大，吵吵嚷嚷的。</p>
-<p>虽然楼下的邮箱大多已经消失了，但是午后读报的轻松感不应该消失。一捆报纸，不应该因为来自十家不同的报社，就要跑十个报刊亭才能买到。</p>
-<br>
-<p>不过应该注意到的是：正如在文艺复兴的时代怀念“高贵的野蛮人”一样，在当今的时代怀念互联网的“田园时代”不应该是解决问题的正道。原始时代确实没有阶级的分化，甚至几乎没有贫富的差别，但今天的我们并不会愿意返回原始时代，因为原始时代的平等大多来自于匮乏。</p>
-<p>如果完全不能够在算法推荐的洪流中掌控自我，那么在同样海量的订阅源中也未必能。RSS提供了自主选择的机会，从而提供了一种“自我负责”的方式，观点的偏激和时间的浪费不再有算法来做替罪羊，只能自我检视。</p>
-<p>在此警示自己：认真挑选和控制自己的订阅源，无人左右时，慎独慎读。愿与读者共勉。</p>
-]]></content>
-      <categories>
-        <category>随笔</category>
-      </categories>
-      <tags>
-        <tag>生活</tag>
       </tags>
   </entry>
   <entry>
@@ -1423,83 +1500,6 @@ c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></spa
       <tags>
         <tag>阅读</tag>
         <tag>历史</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</title>
-    <url>/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/</url>
-    <content><![CDATA[<p>最初因为大创项目，接触了 OpenStack 相关的知识。但重点不在网络，所以对于其中可以随便定义、删除的网络只是有点好奇，没有多想。恰逢软件定义网络课程实验之要求，上手尝试 SDN 的相关实验，试着折腾这个不怕玩坏的网络。</p>
-<p>然而尝试之初不免遇到问题，在此简短记述以备查阅，并可作同道者参考。如有问题，欢迎斧正。</p>
-<span id="more"></span>
-<h2 id="Mininet">Mininet</h2>
-<p>按照<a href="http://mininet.org/">官网</a>上的描述，Mininet 是一个强大的 SDN 实验环境，可以在单机上完成各种网络拓扑的测试。然而如果把他的代码仓库 clone 下来，会发现代码量真的不是很大——不像是一个大型框架的样子。</p>
-<p>大致阅读一下源码，或者将其在<code>debug</code>级别下启动，就会发现 Mininet 是通过包装 SDN 工具命令来实现构建拓扑的，所以其核心管理功能并不包含软件定义网络的数据平面；而重要的控制节点，也使用外部的<code>ovs-testcontroller</code>或者<code>pox</code>、<code>ryu</code>等等。本质上，Mininet 用于构建网络的操作，也<strong>都是可以手动完成</strong>的。不过 Mininet 用一个进程来模拟一个 host，让每个 host 可以调用宿主机上几乎所有的程序，确实带来了非常大的方便。</p>
-<h3 id="安装">安装</h3>
-<p><a href="http://mininet.org/download/">官方文档</a>已经给出了各种安装方案，截至目前，各种方案的版本和环境如下：</p>
-<ul>
-<li>虚拟机镜像：官方已迁移至 Ubuntu 20.04 LTS，在 GitHub Releases 上可以下载。</li>
-<li>包管理器：Ubuntu 18.04/20.04 LTS 下，均更新到2.2版本。</li>
-<li>源码安装：最新的稳定版本为2.3.0版本。</li>
-</ul>
-<p>需要注意的是，即使是最新的 Ubuntu 发行版，软件源中也没有最新版的 Mininet 。考虑到 Mininet 是大学开发的教学实验用软件，我认为在新系统下，追最新版本是没问题的。当前 Mininet 官方已经完成了向 Python3 的迁移，也鼓励用户迁移到 Python3，不过 POX 控制器仍然只能在 Python2 下运行。</p>
-<p>我本机的环境是 Kubuntu 20.04 LTS, Mininet 2.3.0，附带安装了 POX, Ryu 和 Wireshark。很推荐源码安装时的<code>-w</code>选项，安装后 Wireshark 就能分清 OpenFlow 的不同 tag，从而能单独抓取某个虚拟交换机的数据。</p>
-<h3 id="问题排查和解决">问题排查和解决</h3>
-<p>其实这个问题出现得挺让我哭笑不得的。</p>
-<p>安装之初，我按照文档说明，进行最简单的测试：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo mn --<span class="built_in">test</span> pingall</span></span><br></pre></td></tr></table></figure>
-<p>只见每个节点之间 ping 的结果都正常，Mininet 的统计结果却非说节点都不通，还有报错：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">h1 -&gt; h2</span><br><span class="line">*** Error: could not parse ping output: PING h2 (10.0.0.2) 56(84) bytes of data.</span><br><span class="line">64 比特，来自 h2 (10.0.0.2): icmp_seq&#x3D;1 ttl&#x3D;49 时间&#x3D;35.4 毫秒</span><br><span class="line"></span><br><span class="line">--- h2 ping 统计 ---</span><br><span class="line">已发送 1 个包， 已接收 1 个包, 0% 包丢失, 耗时 0 毫秒</span><br><span class="line">rtt min&#x2F;avg&#x2F;max&#x2F;mdev &#x3D; 35.388&#x2F;35.388&#x2F;35.388&#x2F;0.000 ms</span><br><span class="line">X</span><br></pre></td></tr></table></figure>
-<p>翻遍了文档、GitHub Issue、StackOverflow，我也没找到什么解释。不服得很，遂翻找源码。源码组织得比较整齐，于是很快找到了解析 ping 输出的部分：就在<code>mininet/mininet/net.py</code>当中，是<code>Mininet</code>类的一个方法。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@staticmethod</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_parsePing</span>(<span class="params"> pingOutput </span>):</span></span><br><span class="line">    <span class="string">&quot;Parse ping output and return packets sent, received.&quot;</span></span><br><span class="line">    <span class="comment"># Check for downed link</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;connect: Network is unreachable&#x27;</span> <span class="keyword">in</span> pingOutput:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>, <span class="number">0</span></span><br><span class="line">    r = <span class="string">r&#x27;(\d+) packets transmitted, (\d+)( packets)? received&#x27;</span></span><br><span class="line">    m = re.search( r, pingOutput )</span><br><span class="line">    <span class="keyword">if</span> m <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        error( <span class="string">&#x27;*** Error: could not parse ping output: %s\n&#x27;</span> %</span><br><span class="line">                pingOutput )</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>, <span class="number">0</span></span><br><span class="line">    sent, received = <span class="built_in">int</span>( m.group( <span class="number">1</span> ) ), <span class="built_in">int</span>( m.group( <span class="number">2</span> ) )</span><br><span class="line">    <span class="keyword">return</span> sent, received</span><br></pre></td></tr></table></figure>
-<p>一看之下，直笑过去了。本以为是调了哪个系统级的 lib 之类，拿着返回值在解析，谁知是直接把<code>ping</code>命令的输出文字拿来正则匹配了，真有点儿倒拔垂杨柳式的蛮力。</p>
-<p>问题其实已经明了：我的 Linux 是双系统，打算长期使用的，因此配置了中文环境、中文输入法种种，<code>ping</code>命令的输出<strong>也被本地化成了中文</strong>。这样一来，用来匹配英文输出的正则永远失败，Mininet 就认为<code>ping</code>都不通。</p>
-<p>我考虑的解决方法是设置临时环境变量。根据以前对 Linux 的了解，本地化工作应该受<code>LANG</code>这个环境变量控制，于是改变运行 Mininet 的方式：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo LANG=en_US mn --<span class="built_in">test</span> pingall</span></span><br></pre></td></tr></table></figure>
-<p>以期 Linux 按照<code>en_US</code>来本地化输出，避免输出中文。结果是成功的，不过总这样有点麻烦，可以设置别名：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">alias sudo=&#x27;sudo &#x27;</span><br><span class="line">alias mn=&#x27;LANG=en_US mn&#x27;</span><br></pre></td></tr></table></figure>
-<p>第一条让<code>sudo</code>命令也查找别名（默认是不查找的），第二条就是设置语言环境。这两个别名要全局生效，可以放在<code>/etc/profile</code>或者<code>/etc/bash.bashrc</code>当中。</p>
-<blockquote>
-<p>装系统只为用来实验、语言环境是英文的同学，完全不会有这个问题——这就是各种资料上找不到的原因。</p>
-</blockquote>
-<h2 id="Fat-Tree-拓扑的搭建">Fat-Tree 拓扑的搭建</h2>
-<blockquote>
-<p>关于 Fat-Tree，我参考的主要是这篇文章：
-<a href="https://blog.csdn.net/baidu_20163013/article/details/110004560">Fat-tree：A Scalable, Commodity Data Center Network Architecture 解读</a></p>
-</blockquote>
-<p>在构建 Fat-Tree 时，我是用自底向上的顺序连接节点，将每个 Pod 都存放在一个 Object 里。具体代码就不贴了，想来思路上大同小异，不会有太多的差别。</p>
-<p>在实现了一个<code>FatTreeTopo</code>类之后，我用一个小函数来测试：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">doTest</span>():</span></span><br><span class="line">    topo = FatTreeTopo(k=<span class="number">4</span>)</span><br><span class="line">    net = Mininet(topo)</span><br><span class="line">    net.start()</span><br><span class="line">    net.waitConnected()</span><br><span class="line">    CLI(net)</span><br><span class="line">    net.stop()</span><br></pre></td></tr></table></figure>
-<p>然而在解决了上面的一切问题后，还是所有的<code>ping</code>都不通，且这次是真的不通了，<code>h1 ping -c1 h4</code>这样的命令显示完全是访问不到的。于是先尝试着建一个 k = 2 的 Fat-Tree，每个 Pod 只有两台交换机，方便调试。奇怪的是，在 k = 2 的情况下，一切都工作正常。</p>
-<p>在没有头绪的情况下，我只好重新建起 k = 4 的拓扑，再打开 Wireshark 抓包。这里让<code>h1</code>连续尝试<code>ping</code>另一个 Pod 的主机<code>h6</code>，让 Wireshark 抓取连接了<code>h1</code>的边缘交换机上通过的数据包，过滤规则是<code>icmp</code>。当我在<code>h1</code>上发起<code>ping</code>时，发现根本抓不到想要的 ICMPv4 数据包，只有疯狂刷屏的 ICMPv6 包，<code>h1</code>发出的 ARP 包完全淹没在其中，<code>h6</code>连 ARP 应答都没有作出。</p>
-<p>又是一阵好找，找着找着摸到一点线索：k = 4 和 k = 2 情况最大的不同，应该是拓扑中<strong>出现了环路</strong>。这时，用来探测网络连接、更新路由等信息的数据包可能形成广播风暴，让网络处于极度拥塞的状态下。最终搜出了官方 Wiki 上的一条解答：</p>
-<blockquote>
-<p><a href="https://github.com/mininet/mininet/wiki/FAQ#ethernet-loops">Why does my controller, which implements an Ethernet bridge or learning switch, not work with my network which has loops in it? I can't ping anything!</a></p>
-</blockquote>
-<p>其中提到，在这种情况下，应该为网络开启生成树协议（STP），这样可以明确转发路径，进而避免数据包在一个环上来回转发。对应到实现上，需要修改的是<code>addSwitch</code>部分，为其增加一些参数：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">switchOpts = &#123;<span class="string">&#x27;cls&#x27;</span>: OVSBridge,<span class="string">&#x27;stp&#x27;</span>: <span class="number">1</span>&#125;</span><br><span class="line">addSwitch(<span class="string">&#x27;sxx&#x27;</span>, **switchOpts)</span><br></pre></td></tr></table></figure>
-<p>这里指定使用<code>OVSBridge</code>类型的交换机，<code>stp=1</code>开启 STP 协议。另外，开启 STP 后需要等待交换机连接，所以脚本中</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">net.waitConnected()</span><br></pre></td></tr></table></figure>
-<p>是必不可少的，在连接上之前，网络都是不通的。或者也可以在 CLI 下调用这个方法：（启动时创建的<code>Mininet</code>实例一般都叫做<code>net</code>）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">mininet&gt;</span><span class="bash"> py net.waitConnected()</span></span><br></pre></td></tr></table></figure>
-<p>再启动拓扑进行测试，一切就都符合预期了。</p>
-<h2 id="一些其他用途">一些其他用途</h2>
-<p>Mininet 用来当网络测试工具也不错。在启动时，加上 NAT 选项，就可以让 host 接入外部网络：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo mn --nat</span></span><br></pre></td></tr></table></figure>
-<p>这个网络环境非常干净、简单（没防火墙、没拥塞，甚至没多少流量），还比用多台虚拟机组网轻量许多。通过 Xterm 或者 SSH 连接到 host 之后，网络实验中的 ARP 攻击、DNS 攻击等等都可以在这里尝试，并且<strong>完全没有后遗症</strong>。<code>sudo mn -c</code>之后，一切灰飞烟灭不留痕迹，纵然南朝四百八十寺，再无楼台烟雨中。</p>
-<blockquote>
-<p>一点小问题：host 的 DNS 解析跟随宿主机设置，所以如果系统中有<code>systemd-resolved</code>这个服务，需要暂时将<code>/etc/resolv.conf</code>这个文件中的<code>nameserver</code>项修改成一个可用的 DNS 服务器地址。
-原先的<code>nameserver</code>一般是<code>127.0.0.53</code>，这是<code>systemd-resolved</code>维护的一个本地 DNS，经过它指向真正的 DNS 服务器，但是 Mininet 并不能使用这个东西。
-注意玩完之后，还是把这一项该回来为好，虽说哪怕不改重启后也会恢复。</p>
-</blockquote>
-<p>另外，在<code>addLink</code>时，Mininet 提供了限制带宽的选项。如果想要观察拥塞之类的现象，完全可以在添加连接时就把带宽限得很低，本机上的网络环境总是比复杂的外网要好下手许多。</p>
-]]></content>
-      <categories>
-        <category>编程</category>
-      </categories>
-      <tags>
-        <tag>SDN</tag>
-        <tag>软件定义网络</tag>
-        <tag>Mininet</tag>
       </tags>
   </entry>
 </search>
