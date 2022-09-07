@@ -209,20 +209,6 @@
 
   
   <url>
-    <loc>https://greyishsong.ink/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/</loc>
-    <lastmod>2022-09-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://greyishsong.ink/tags/OpenGL/</loc>
-    <lastmod>2022-09-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://greyishsong.ink/tags/%E6%8A%98%E7%BA%B8/</loc>
     <lastmod>2022-09-07</lastmod>
     <changefreq>weekly</changefreq>
@@ -231,6 +217,20 @@
   
   <url>
     <loc>https://greyishsong.ink/tags/%E7%94%9F%E6%B4%BB/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://greyishsong.ink/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://greyishsong.ink/tags/OpenGL/</loc>
     <lastmod>2022-09-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -337,14 +337,14 @@
 
   
   <url>
-    <loc>https://greyishsong.ink/categories/%E7%BC%96%E7%A8%8B/</loc>
+    <loc>https://greyishsong.ink/categories/%E6%89%8B%E5%B7%A5%E8%89%BA/</loc>
     <lastmod>2022-09-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://greyishsong.ink/categories/%E6%89%8B%E5%B7%A5%E8%89%BA/</loc>
+    <loc>https://greyishsong.ink/categories/%E7%BC%96%E7%A8%8B/</loc>
     <lastmod>2022-09-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
