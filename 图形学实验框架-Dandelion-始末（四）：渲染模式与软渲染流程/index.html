@@ -16,24 +16,27 @@
   <meta name="author" content="greyishsong">
   <meta name="keywords" content="">
   
-    <meta name="description" content="最初因为大创项目，接触了 OpenStack 相关的知识。但重点不在网络，所以对于其中可以随便定义、删除的网络只是有点好奇，没有多想。恰逢软件定义网络课程实验之要求，上手尝试 SDN 的相关实验，试着折腾这个不怕玩坏的网络。 然而尝试之初不免遇到问题，在此简短记述以备查阅，并可作同道者参考。如有问题，欢迎斧正。">
+    <meta name="description" content="GAMES 101 的实验中包含了经典的光栅化渲染、Whitted-Style Ray-Tracing 和路径追踪，加上闫老师高质量的课程内容，已经把局部光照渲染和全局光照渲染这两种视角展示得很不错了。但我从开始做 101 的实验时就产生了一个遗憾——为什么不能用我自己编写的工具来渲染任何我想要渲染的模型呢？而这正是 Dandelion 想要弥补的地方。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建">
-<meta property="og:url" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/index.html">
+<meta property="og:title" content="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程">
+<meta property="og:url" content="https://greyishsong.ink/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/index.html">
 <meta property="og:site_name" content="greyishsong">
-<meta property="og:description" content="最初因为大创项目，接触了 OpenStack 相关的知识。但重点不在网络，所以对于其中可以随便定义、删除的网络只是有点好奇，没有多想。恰逢软件定义网络课程实验之要求，上手尝试 SDN 的相关实验，试着折腾这个不怕玩坏的网络。 然而尝试之初不免遇到问题，在此简短记述以备查阅，并可作同道者参考。如有问题，欢迎斧正。">
+<meta property="og:description" content="GAMES 101 的实验中包含了经典的光栅化渲染、Whitted-Style Ray-Tracing 和路径追踪，加上闫老师高质量的课程内容，已经把局部光照渲染和全局光照渲染这两种视角展示得很不错了。但我从开始做 101 的实验时就产生了一个遗憾——为什么不能用我自己编写的工具来渲染任何我想要渲染的模型呢？而这正是 Dandelion 想要弥补的地方。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-03-26T15:38:14.000Z">
-<meta property="article:modified_time" content="2022-09-06T03:35:48.179Z">
+<meta property="og:image" content="https://greyishsong.ink/images/dandelion.png">
+<meta property="article:published_time" content="2024-02-05T02:47:46.000Z">
+<meta property="article:modified_time" content="2024-02-05T02:54:18.150Z">
 <meta property="article:author" content="greyishsong">
-<meta property="article:tag" content="SDN">
-<meta property="article:tag" content="软件定义网络">
-<meta property="article:tag" content="Mininet">
+<meta property="article:tag" content="图形学">
+<meta property="article:tag" content="课程">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="本科教育">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://greyishsong.ink/images/dandelion.png">
   
   
   
-  <title>SDN实验（一）：Mininet的安装问题与Fat-Tree的构建 - greyishsong</title>
+  <title>图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程 - greyishsong</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -46,6 +49,8 @@
   <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.27.0/plugins/line-numbers/prism-line-numbers.min.css" />
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.15.6/katex.min.css" />
 
 
 
@@ -236,13 +241,13 @@
   
 
 <div id="banner" class="banner" parallax=true
-     style="background: url('/images/banner.gif') no-repeat center center; background-size: cover;">
+     style="background: url('/images/dandelion.png') no-repeat center center; background-size: cover;">
   <div class="full-bg-img">
     <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"></span>
+            <span id="subtitle" data-typed-text="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"></span>
           
         </div>
 
@@ -253,8 +258,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2021-03-26 23:38" pubdate>
-          2021年3月26日 晚上
+        <time datetime="2024-02-05 10:47" pubdate>
+          2024年2月5日 上午
         </time>
       </span>
     
@@ -265,7 +270,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4k 字
+          5.8k 字
         
       </span>
     
@@ -276,7 +281,7 @@
         
         
         
-          34 分钟
+          49 分钟
         
       </span>
     
@@ -351,7 +356,7 @@
       
         <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/" title="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"
            class="list-group-item list-group-item-action
-           active">
+           ">
           <span class="category-post">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</span>
         </a>
       
@@ -414,7 +419,7 @@
       
         <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"
            class="list-group-item list-group-item-action
-           ">
+           active">
           <span class="category-post">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
         </a>
       
@@ -456,103 +461,80 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</h1>
+            <h1 style="display: none">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</h1>
             
             
               <div class="markdown-body">
                 
-                <p>最初因为大创项目，接触了 OpenStack 相关的知识。但重点不在网络，所以对于其中可以随便定义、删除的网络只是有点好奇，没有多想。恰逢软件定义网络课程实验之要求，上手尝试 SDN 的相关实验，试着折腾这个不怕玩坏的网络。</p>
-<p>然而尝试之初不免遇到问题，在此简短记述以备查阅，并可作同道者参考。如有问题，欢迎斧正。</p>
+                <p>GAMES 101 的实验中包含了经典的光栅化渲染、Whitted-Style Ray-Tracing 和路径追踪，加上闫老师高质量的课程内容，已经把局部光照渲染和全局光照渲染这两种视角展示得很不错了。但我从开始做 101 的实验时就产生了一个遗憾——为什么不能用我自己编写的工具来渲染任何我想要渲染的模型呢？而这正是 Dandelion 想要弥补的地方。</p>
 <span id="more"></span>
-<h2 id="Mininet">Mininet</h2>
-<p>按照<a target="_blank" rel="noopener" href="http://mininet.org/">官网</a>上的描述，Mininet 是一个强大的 SDN 实验环境，可以在单机上完成各种网络拓扑的测试。然而如果把他的代码仓库 clone 下来，会发现代码量真的不是很大——不像是一个大型框架的样子。</p>
-<p>大致阅读一下源码，或者将其在<code>debug</code>级别下启动，就会发现 Mininet 是通过包装 SDN 工具命令来实现构建拓扑的，所以其核心管理功能并不包含软件定义网络的数据平面；而重要的控制节点，也使用外部的<code>ovs-testcontroller</code>或者<code>pox</code>、<code>ryu</code>等等。本质上，Mininet 用于构建网络的操作，也<strong>都是可以手动完成</strong>的。不过 Mininet 用一个进程来模拟一个 host，让每个 host 可以调用宿主机上几乎所有的程序，确实带来了非常大的方便。</p>
-<h3 id="安装">安装</h3>
-<p><a target="_blank" rel="noopener" href="http://mininet.org/download/">官方文档</a>已经给出了各种安装方案，截至目前，各种方案的版本和环境如下：</p>
+<h2 id="软件渲染的工作方式">软件渲染的工作方式</h2>
+<p>如今硬件渲染管线已经主宰了大多数渲染应用领域，那我为什么还要选择软件渲染呢？这也是受到闫老师 GAMES 101 实验的思路的启发，即一门基础课程应该介绍渲染管线，而不是图形 API ；偏重流程、光照和着色，避免过度强调性能优化。</p>
+<h3 id="渲染引擎与渲染器">渲染引擎与渲染器</h3>
+<p>回顾第一篇文章里我所设想的“功能性要求”：</p>
+<blockquote>
+<p>由于我们希望这个框架能实现各种渲染流程，显然它应该像 Blender 一样可以切换“渲染器”，每个渲染器都对应一种渲染管线。为避免某个实验过于艰深，可以牺牲管线的灵活程度，只保留较少的可编程部分。</p>
+</blockquote>
+<p>为了实现它，我将一次渲染的过程拆分为两部分：</p>
 <ul>
-<li>虚拟机镜像：官方已迁移至 Ubuntu 20.04 LTS，在 GitHub Releases 上可以下载。</li>
-<li>包管理器：Ubuntu 18.04/20.04 LTS 下，均更新到2.2版本。</li>
-<li>源码安装：最新的稳定版本为2.3.0版本。</li>
+<li>与渲染算法甚至渲染管线基本无关的部分，包括读入场景、输出 frame buffer 、展示到屏幕上等等</li>
+<li>根据场景、光源和视角生成图像（frame buffer 内容）的部分</li>
 </ul>
-<p>需要注意的是，即使是最新的 Ubuntu 发行版，软件源中也没有最新版的 Mininet 。考虑到 Mininet 是大学开发的教学实验用软件，我认为在新系统下，追最新版本是没问题的。当前 Mininet 官方已经完成了向 Python3 的迁移，也鼓励用户迁移到 Python3，不过 POX 控制器仍然只能在 Python2 下运行。</p>
-<p>我本机的环境是 Kubuntu 20.04 LTS, Mininet 2.3.0，附带安装了 POX, Ryu 和 Wireshark。很推荐源码安装时的<code>-w</code>选项，安装后 Wireshark 就能分清 OpenFlow 的不同 tag，从而能单独抓取某个虚拟交换机的数据。</p>
-<h3 id="问题排查和解决">问题排查和解决</h3>
-<p>其实这个问题出现得挺让我哭笑不得的。</p>
-<p>安装之初，我按照文档说明，进行最简单的测试：</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">sudo</span> mn <span class="token parameter variable">--test</span> pingall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div></figure>
-<p>只见每个节点之间 ping 的结果都正常，Mininet 的统计结果却非说节点都不通，还有报错：</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-none"><code class="language-none">h1 -&gt; h2
-*** Error: could not parse ping output: PING h2 (10.0.0.2) 56(84) bytes of data.
-64 比特，来自 h2 (10.0.0.2): icmp_seq&#x3D;1 ttl&#x3D;49 时间&#x3D;35.4 毫秒
-
---- h2 ping 统计 ---
-已发送 1 个包， 已接收 1 个包, 0% 包丢失, 耗时 0 毫秒
-rtt min&#x2F;avg&#x2F;max&#x2F;mdev &#x3D; 35.388&#x2F;35.388&#x2F;35.388&#x2F;0.000 ms
-X<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
-<p>翻遍了文档、GitHub Issue、StackOverflow，我也没找到什么解释。不服得很，遂翻找源码。源码组织得比较整齐，于是很快找到了解析 ping 输出的部分：就在<code>mininet/mininet/net.py</code>当中，是<code>Mininet</code>类的一个方法。</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token decorator annotation punctuation">@staticmethod</span>
-<span class="token keyword">def</span> <span class="token function">_parsePing</span><span class="token punctuation">(</span> pingOutput <span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token string">"Parse ping output and return packets sent, received."</span>
-    <span class="token comment"># Check for downed link</span>
-    <span class="token keyword">if</span> <span class="token string">'connect: Network is unreachable'</span> <span class="token keyword">in</span> pingOutput<span class="token punctuation">:</span>
-        <span class="token keyword">return</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span>
-    r <span class="token operator">=</span> <span class="token string">r'(\d+) packets transmitted, (\d+)( packets)? received'</span>
-    m <span class="token operator">=</span> re<span class="token punctuation">.</span>search<span class="token punctuation">(</span> r<span class="token punctuation">,</span> pingOutput <span class="token punctuation">)</span>
-    <span class="token keyword">if</span> m <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
-        error<span class="token punctuation">(</span> <span class="token string">'*** Error: could not parse ping output: %s\n'</span> <span class="token operator">%</span>
-                pingOutput <span class="token punctuation">)</span>
-        <span class="token keyword">return</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">0</span>
-    sent<span class="token punctuation">,</span> received <span class="token operator">=</span> <span class="token builtin">int</span><span class="token punctuation">(</span> m<span class="token punctuation">.</span>group<span class="token punctuation">(</span> <span class="token number">1</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span> m<span class="token punctuation">.</span>group<span class="token punctuation">(</span> <span class="token number">2</span> <span class="token punctuation">)</span> <span class="token punctuation">)</span>
-    <span class="token keyword">return</span> sent<span class="token punctuation">,</span> received<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
-<p>一看之下，直笑过去了。本以为是调了哪个系统级的 lib 之类，拿着返回值在解析，谁知是直接把<code>ping</code>命令的输出文字拿来正则匹配了，真有点儿倒拔垂杨柳式的蛮力。</p>
-<p>问题其实已经明了：我的 Linux 是双系统，打算长期使用的，因此配置了中文环境、中文输入法种种，<code>ping</code>命令的输出<strong>也被本地化成了中文</strong>。这样一来，用来匹配英文输出的正则永远失败，Mininet 就认为<code>ping</code>都不通。</p>
-<p>我考虑的解决方法是设置临时环境变量。根据以前对 Linux 的了解，本地化工作应该受<code>LANG</code>这个环境变量控制，于是改变运行 Mininet 的方式：</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">sudo</span> <span class="token assign-left variable"><span class="token environment constant">LANG</span></span><span class="token operator">=</span>en_US mn <span class="token parameter variable">--test</span> pingall<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div></figure>
-<p>以期 Linux 按照<code>en_US</code>来本地化输出，避免输出中文。结果是成功的，不过总这样有点麻烦，可以设置别名：</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">alias</span> <span class="token assign-left variable">sudo</span><span class="token operator">=</span><span class="token string">'sudo '</span>
-<span class="token builtin class-name">alias</span> <span class="token assign-left variable">mn</span><span class="token operator">=</span><span class="token string">'LANG=en_US mn'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></div></figure>
-<p>第一条让<code>sudo</code>命令也查找别名（默认是不查找的），第二条就是设置语言环境。这两个别名要全局生效，可以放在<code>/etc/profile</code>或者<code>/etc/bash.bashrc</code>当中。</p>
+<p>在 Dandelion 中，第一部分由“渲染引擎” <code>RenderEngine</code> 承载，第二部分由“渲染器” <code>Renderer</code> 实现。从界面上启动一次渲染的流程是这样的：</p>
+<ol>
+<li>编辑好场景，设定光源和相机</li>
+<li>点击 <em>Render to Image</em> 按钮，UI 组件调用 <code>RenderEngine::render</code> 方法，传入场景和所选的渲染器开始渲染</li>
+<li><code>RenderEngine</code> 根据传入的类型调用相应渲染器的 <code>render</code> 方法</li>
+<li>渲染器将渲染图写入到 <code>RenderEngine::render_res</code> 中</li>
+<li>调用 <code>glTexImage2D</code> 将 <code>RenderEngine::render_res</code> 转换为一张纹理贴图，然后用 <code>ImGui::Image</code> 展示出来</li>
+</ol>
+<p>在整个流程中，<code>RenderEngine</code> 的主要作用就是传参和提供 buffer ，有些类似设计模式里提到的的适配器 (Adapter) ，主要作用是统一接口。在此之下，真正完成着色计算的是渲染器。</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/rendering.svg" srcset="/img/loading.gif" lazyload alt="RenderEngine 与 Renderer 之间的数据流向"></p>
+<p>由于 Dandelion 管理场景对象的部分与渲染模块是分离的，渲染器按照约定的层次遍历场景即可获得渲染所需的数据，不必关心读取和解析文件的问题；不同渲染器之间可以共用的配置则存储于 <code>RenderEngine</code> 中，在调用渲染器渲染时传入。</p>
+<h3 id="渲染管线">渲染管线</h3>
+<p>虽然在界面上有三个渲染器选项，但实际上 Dandelion 只实现了两个渲染器，分别是 <code>RasterizerRenderer</code> 和 <code>WhittedRenderer</code> 。这两个渲染器的主干代码分别移植自 GAMES 101 的实验 3 和实验 5 ，不过为了将其适配到 Dandelion 中作了不少修改。我们也修复了 GAMES 101 作业中的一些 bug ，例如缺少正确的透视矫正等等。这部分工作主要由我的同门 JoTaiLang 完成，他几乎将数月的业余时间全部投入到了渲染器的移植和调试中，没有他的帮助，我恐怕绝不可能在七月初完成 1.0 版本。</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/renderer-options.png" srcset="/img/loading.gif" lazyload alt="界面上的渲染器选项"></p>
+<p><code>RasterizerRenderer</code> 配合另一个类 <code>Rasterizer</code> 实现了包含 Vertex Processing、Rasterization、Fragment Processing 和 Blending 四个阶段的极简光栅化管线，支持 z-buffer 消隐。每个 shader 是一个函数，有相应的 payload 作为输入。不过由于需要处理的变量更多，代码中增加了一个静态结构体 <code>Uniforms</code> ，所有的 shader 都可以从中读取“全局变量”。由于这两个 shader 都是通过 <code>std::function</code> 指定，开发者也可以像使用 GLSL shader 那样修改其中的内容甚至在运行时切换 shader 。渲染时由 <code>RasterizerRenderer::render</code> 将场景中的 mesh 整理成无序的 <code>TriangleList</code> 送入 <code>Rasterizer::draw</code> ，依次对每个 <code>Triangle</code> 进行顶点处理、光栅化和片元处理。</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/rasterizer-renderer.svg" srcset="/img/loading.gif" lazyload alt="当前的光栅化渲染管线"></p>
+<p>上图中蓝色箭头表示数据流动方向，红色箭头表示函数调用关系，可以看到渲染的核心逻辑都集中在 <code>Rasterizer</code> 内部。但为什么渲染器还要调用 <code>Rasterizer</code> 才能完成渲染呢？这是沿用 GAMES 101 实验框架设计的结果，尽管我不太能理解这样做的意义何在——相反，我甚至觉得这样的设计并不是很好，至少当前就体现出了两个问题：</p>
+<ul>
+<li><code>RenderEngine</code> 是静态对象（由 <code>UI::Toolbar</code> 构造），Renderer 也是静态对象（由 <code>RenderEngine</code> 构造），只有 <code>Rasterizer</code> 在每次渲染时重新构造然后销毁。由于 <code>Rasterizer</code> 中保存了大量的参数和中间结果（例如 MVP 变换、frame buffer 副本和 depth buffer），在 frame buffer 和 depth buffer 每次都需要手动覆写（用背景色或无穷大填充）的情况下，重新构造它们既不能省去覆写的代码，也不能提高执行的效率，这样的设计就显得很多余了。从直觉角度来说，光栅化器和要渲染的场景是无关的，对应到代码中也应该是静态的（或者至少是固定的）。</li>
+<li>我们有一个四阶段的管线，但实际上这四个阶段都不在 <code>RasterizerRenderer::render</code> 函数内执行，而是在 <code>Rasterizer::draw</code> 函数内执行，前者近乎是后者的简单包装。把调用 vertex shader 和 fragment shader 的代码写到 <code>Rasterizer</code> 当中，后来者再读代码时便很容易感到迷惑：这个光栅化器到底是负责光栅化还是整个渲染流程的？如果它负责执行整个流程，那光栅化渲染器又起什么作用？</li>
+</ul>
+<p>当然，我们依然非常感谢 GAMES 101 实验的设计者们给出了功能大致正确并且风格比较规整的代码框架。在初步完成 Dandelion 的过程中，有限的水平和比较紧张的时间一度让我们相当焦虑，因而没有大改光栅化渲染器的结构，基本上就是将原先的顶层入口替换成了 <code>RasterizerRenderer</code> ，再将原先的 <code>Rasterizer</code> 类移植进来并适配 Dandelion 的场景格式。这部分代码在 2.0 版本中多半需要略作重构，至少要避开每次重新构造 <code>Rasterizer</code> 的尴尬。</p>
+<p>话说回来，我们感到时间紧张一方面是因为水平有限，另一方面是因为较大幅度地修改了光线追踪的代码。相较于所有代码都在 <em>渲染</em> 子模块下的光栅化渲染器，Whitted-Style 光线追踪渲染器的实现则分散在 <em>渲染 render</em> 与 <em>工具 utils</em> 两个子模块中。我们首先从 GAMES 101 实验中拆解出负责着色的代码，然后将其移植到渲染子模块；再拆解出射线求交和 BVH 加速的代码，半移植半重写地加入工具子模块。</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/whitted-renderer.svg" srcset="/img/loading.gif" lazyload alt="Whitted-Style 光线追踪渲染管线"></p>
+<p>图中代表函数的黄色框分成上下两半，上半部分是 <code>WhittedRenderer</code> 自身的方法，下半部分则是 <em>utils</em> 中的工具函数。</p>
+<p>这一设计思路来自于我对 CMU 15/462 实验框架 Scotty3D 的使用经验：它也是个全功能交互式框架，但在渲染方面只考虑了路径追踪 (Path Tracing) 技术，将射线生成、射线求交、BVH 加速等代码全部置于 <code>PT</code> 这个命名空间下，相当于将这些功能统一划归路径追踪渲染器。然而，拾取操作（在屏幕上点击物体就可以选中它，通常被叫做 picking）通过从视点发射一条射线来将屏幕坐标系中的点击操作转换为世界坐标系中的选择过程，因此它同样依赖于射线求交过程。于是 Scotty3D 的 UI 代码中必须调用路径追踪子模块的代码，甚至是一些与渲染功能耦合比较紧密的代码，在我看来逻辑上略显混乱。拆解之后，Dandelion 的 UI 子模块和渲染子模块共同依赖射线相关的工具代码（<em>utils/ray.h</em> 与 <em>utils/bvh.h</em>）。</p>
+<p>最终，光线追踪渲染器的结构变得很简单：以 <code>WhittedRenderer::render</code> 作为渲染入口，在深度为 1 的假想渲染平面上划分像素网格并调用 <code>utils/ray.h</code> 提供的 <code>generate_ray</code> 根据图像坐标生成射线，对每条射线调用 <code>cast_ray</code> 求交并完成着色计算，即可得到图像。</p>
 <blockquote>
-<p>装系统只为用来实验、语言环境是英文的同学，完全不会有这个问题——这就是各种资料上找不到的原因。</p>
+<p>实现 Whitted-Style 光线追踪时，我们为了直接沿用 <code>GL::Material</code> 的材质格式，小小地取了一点巧：在 Phong 模型材质的基础上，约定将 shininess &gt; <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><msup><mn>0</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">10^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span> 的材质都视为镜面，即着色时只反射环境颜色而没有自身颜色。</p>
 </blockquote>
-<h2 id="Fat-Tree-拓扑的搭建">Fat-Tree 拓扑的搭建</h2>
-<blockquote>
-<p>关于 Fat-Tree，我参考的主要是这篇文章：
-<a target="_blank" rel="noopener" href="https://blog.csdn.net/baidu_20163013/article/details/110004560">Fat-tree：A Scalable, Commodity Data Center Network Architecture 解读</a></p>
-</blockquote>
-<p>在构建 Fat-Tree 时，我是用自底向上的顺序连接节点，将每个 Pod 都存放在一个 Object 里。具体代码就不贴了，想来思路上大同小异，不会有太多的差别。</p>
-<p>在实现了一个<code>FatTreeTopo</code>类之后，我用一个小函数来测试：</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">def</span> <span class="token function">doTest</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-    topo <span class="token operator">=</span> FatTreeTopo<span class="token punctuation">(</span>k<span class="token operator">=</span><span class="token number">4</span><span class="token punctuation">)</span>
-    net <span class="token operator">=</span> Mininet<span class="token punctuation">(</span>topo<span class="token punctuation">)</span>
-    net<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    net<span class="token punctuation">.</span>waitConnected<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    CLI<span class="token punctuation">(</span>net<span class="token punctuation">)</span>
-    net<span class="token punctuation">.</span>stop<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
-<p>然而在解决了上面的一切问题后，还是所有的<code>ping</code>都不通，且这次是真的不通了，<code>h1 ping -c1 h4</code>这样的命令显示完全是访问不到的。于是先尝试着建一个 k = 2 的 Fat-Tree，每个 Pod 只有两台交换机，方便调试。奇怪的是，在 k = 2 的情况下，一切都工作正常。</p>
-<p>在没有头绪的情况下，我只好重新建起 k = 4 的拓扑，再打开 Wireshark 抓包。这里让<code>h1</code>连续尝试<code>ping</code>另一个 Pod 的主机<code>h6</code>，让 Wireshark 抓取连接了<code>h1</code>的边缘交换机上通过的数据包，过滤规则是<code>icmp</code>。当我在<code>h1</code>上发起<code>ping</code>时，发现根本抓不到想要的 ICMPv4 数据包，只有疯狂刷屏的 ICMPv6 包，<code>h1</code>发出的 ARP 包完全淹没在其中，<code>h6</code>连 ARP 应答都没有作出。</p>
-<p>又是一阵好找，找着找着摸到一点线索：k = 4 和 k = 2 情况最大的不同，应该是拓扑中<strong>出现了环路</strong>。这时，用来探测网络连接、更新路由等信息的数据包可能形成广播风暴，让网络处于极度拥塞的状态下。最终搜出了官方 Wiki 上的一条解答：</p>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://github.com/mininet/mininet/wiki/FAQ#ethernet-loops">Why does my controller, which implements an Ethernet bridge or learning switch, not work with my network which has loops in it? I can't ping anything!</a></p>
-</blockquote>
-<p>其中提到，在这种情况下，应该为网络开启生成树协议（STP），这样可以明确转发路径，进而避免数据包在一个环上来回转发。对应到实现上，需要修改的是<code>addSwitch</code>部分，为其增加一些参数：</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python">switchOpts <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token string">'cls'</span><span class="token punctuation">:</span> OVSBridge<span class="token punctuation">,</span><span class="token string">'stp'</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">&#125;</span>
-addSwitch<span class="token punctuation">(</span><span class="token string">'sxx'</span><span class="token punctuation">,</span> <span class="token operator">**</span>switchOpts<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></div></figure>
-<p>这里指定使用<code>OVSBridge</code>类型的交换机，<code>stp=1</code>开启 STP 协议。另外，开启 STP 后需要等待交换机连接，所以脚本中</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python">net<span class="token punctuation">.</span>waitConnected<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div></figure>
-<p>是必不可少的，在连接上之前，网络都是不通的。或者也可以在 CLI 下调用这个方法：（启动时创建的<code>Mininet</code>实例一般都叫做<code>net</code>）</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">mininet<span class="token operator">></span> py net.waitConnected<span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div></figure>
-<p>再启动拓扑进行测试，一切就都符合预期了。</p>
-<h2 id="一些其他用途">一些其他用途</h2>
-<p>Mininet 用来当网络测试工具也不错。在启动时，加上 NAT 选项，就可以让 host 接入外部网络：</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">$ <span class="token function">sudo</span> mn <span class="token parameter variable">--nat</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div></figure>
-<p>这个网络环境非常干净、简单（没防火墙、没拥塞，甚至没多少流量），还比用多台虚拟机组网轻量许多。通过 Xterm 或者 SSH 连接到 host 之后，网络实验中的 ARP 攻击、DNS 攻击等等都可以在这里尝试，并且<strong>完全没有后遗症</strong>。<code>sudo mn -c</code>之后，一切灰飞烟灭不留痕迹，纵然南朝四百八十寺，再无楼台烟雨中。</p>
-<blockquote>
-<p>一点小问题：host 的 DNS 解析跟随宿主机设置，所以如果系统中有<code>systemd-resolved</code>这个服务，需要暂时将<code>/etc/resolv.conf</code>这个文件中的<code>nameserver</code>项修改成一个可用的 DNS 服务器地址。
-原先的<code>nameserver</code>一般是<code>127.0.0.53</code>，这是<code>systemd-resolved</code>维护的一个本地 DNS，经过它指向真正的 DNS 服务器，但是 Mininet 并不能使用这个东西。
-注意玩完之后，还是把这一项该回来为好，虽说哪怕不改重启后也会恢复。</p>
-</blockquote>
-<p>另外，在<code>addLink</code>时，Mininet 提供了限制带宽的选项。如果想要观察拥塞之类的现象，完全可以在添加连接时就把带宽限得很低，本机上的网络环境总是比复杂的外网要好下手许多。</p>
+<h2 id="拓展-Dandelion-的渲染能力">拓展 Dandelion 的渲染能力</h2>
+<h3 id="性能优化">性能优化</h3>
+<p>由于每个像素都进行相同的计算（着色），渲染是一个非常适合并行优化的过程。例如 Blender 的 Cycles 渲染器在使用 CPU 渲染时可以达到 99% 以上的 CPU 占用率，这意味着实现合理的并行渲染程序可以完全发挥 CPU 算力。</p>
+<p>在移植完 <code>RasterizerRenderer</code> 之后，我们又实现了一个多线程版本的光栅化渲染管线。不过多线程和单线程的渲染逻辑基本一致，所以另外定义一个多线程光栅化渲染器类并不必要，我们也就只增加了若干带有 <code>_mt</code> 后缀的函数以便共用配置和初始化的代码。在不涉及外部交互的情况下，直接使用 <code>std::thread</code> 写出一个多线程版本并不困难。真正决定性能的重点在于：规划哪些数据要被复制给每个线程，成为线程局部数据 (thread local data)；哪些数据还是保留在主线程内，成为共享数据。</p>
+<p>JoTaiLang 同学一开始就确定了要将所有的三角形（面片）分配不同的线程，因为使用局部光照模型时不同的面片之间毫无影响，面片不仅可以直接被分配给不同的线程，而且在 join 时也不必合并。然而 frame buffer 和 depth buffer 就不是那么好处理了，不同的线程可能会写同一个像素处的颜色（或深度）值，这种写冲突是不可避免的。此时我的想法是索性准备 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext>threads</mtext></msub></mrow><annotation encoding="application/x-tex">N_\text{threads}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">threads</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 个 buffer ，每个线程首先写自己的 buffer ，到 join 时再将所有的 buffer 根据深度值合并起来。于是 JoTaiLang 分别测试了两种方案的性能：</p>
+<ul>
+<li>全局加锁：当某个线程要写 frame buffer 时，将 depth buffer 和 frame buffer 都锁上，写完一个像素后再释放锁</li>
+<li>多个 buffer：每个线程单独创建 frame buffer 和 depth buffer ，join 后在主线程根据每个 depth buffer 的值决定来合并 frame buffer</li>
+</ul>
+<p>测试的结果并不如我所愿——虽然多个 buffer 的方案完全消除了锁操作，但用时反而比全局加锁的方案更长一些。所以我们最终选择了全局加锁的方案，也没有继续尝试细粒度锁或加速 buffer 合并的方案。不过在仅使用全局锁的情况下，启动 8 个线程便能够达到 4 以上的加速比，可见光栅化三角形与片元着色（无共享数据部分）的开销应当明显大于写 buffer（有冲突的部分）的开销。</p>
+<p>完全无优化的光线追踪会调用 <code>naive_intersect</code> 函数计算光线与 mesh 的交点，这个函数会遍历 mesh 中所有的面片并调用 <code>ray_triangle_intersect</code> 进行求交，实现很简单但效率非常底下。我们移植 GAMES 101 实验中的 BVH 代码后，光线追踪效率有了质的飞跃，甚至可以在几十秒内渲染 Stanford Dragon 2 模型（约 36 万面片）！于是我们就转移精力去写其他部分的代码了，没有为光线追踪实现多线程优化。</p>
+<p>说来我们在移植 BVH 代码时还有个小插曲：GAMES 101 的实验代码完全没有考虑物体的 model 变换（或者说默认 model matrix 是个单位矩阵），因而直接将 BVH 建立在了世界坐标系下。然而 Dandelion 允许用户对物体进行多种线性变换，如果还将 BVH 建立在世界坐标系下，每次变换物体都要更新整个 BVH ，这是不可接受的。因此我们加入了两个修改：</p>
+<ul>
+<li>将 BVH 由场景级降为物体级，每个物体都有一个自己的 BVH（以 <code>Object::bvh</code> 类属性的形式存在）</li>
+<li>BVH 建立在模型坐标系下，物体被线性变换后无需更新 BVH</li>
+</ul>
+<p>不过，这也导致射线（光线）与物体求交之前必须被变换到物体的模型坐标系下，好在这样的代价不大，完全可以接受。</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/show-bvh.png" srcset="/img/loading.gif" lazyload alt="为测试 BVH 而增加的 BVH 可视化功能"></p>
+<h3 id="更多效果">更多效果</h3>
+<p>目前的光栅化渲染管线尚不支持生成阴影，不过完成渲染后 <code>RasterizerRenderer</code> 中的 depth buffer (z-buffer) 会被更新为当前视角下的深度图，所以只要对 <code>RasterizerRenderer::render</code> 函数稍作扩展就可以在其中实现 2-pass rendering ，并利用深度图实现 shadow mapping 。类似的 multi-pass rendering 理论上也都不需要大改代码。</p>
+<p>对于光线追踪渲染管线来说，只需在材质（以及材质编辑 UI 组件）中加入透明度和折射率属性，再少量修改 <code>WhittedRenderer::cast_ray</code> 的代码，即可支持渲染透明物体。</p>
+<p>以上都是些零打碎敲的修改，如果我们能实现一个多模式的材质系统（至少添加 PBR 材质模式），物体将不再局限于 Phong 光照模型；再进一步，我们就可以将结合了 PBR 的路径追踪渲染管线实现为一个新的渲染器 <code>PathTracingRenderer</code> ，让 Dandelion 能够渲染出更加惊艳的图像。这无疑是 2.0 版本最具挑战性的目标之一，希望我们能够在明年达成。</p>
+<h2 id="下回分解">下回分解</h2>
+<p>渲染模式的大部分工作并非由我完成，因此我对这部分的发言权也有限。而建模模式是我一手设计、实现并调试的。虽然我从 Scotty3D 中移植了不少代码，但也自己实现了一些行之有效的优化。2022 至 2023 学年秋季学期上课时，许多同学的轻薄笔记本在进入 Scotty3D 的建模模式时帧率大跌，甚至卡顿到完全无法操作 (&lt; 5 FPS) 。而 Dandelion 运行在一台主流轻薄本上时，支持建模模式操纵数十万面片的 mesh 并维持 30+ FPS 的帧率，并且还没有牺牲多少易用性和视觉效果！虽说这些优化更近乎是 trick ，但它们的实际效果实在是让我很有成就感。</p>
+<p>下一篇文章我会回忆一下在 Dandelion 中加入建模模式与半边网格 (Halfedge Mesh) 数据结构的过程。除了算法和调试的问题外，建模模式在 GUI 、状态、交互方面带来的复杂性相当大，可以说超过了其他模式的总和，也让我在最初构建 GUI 时犯下的错误彻底爆发。希望这些经验能够帮助后来的同学们，也希望这段记忆能在我的脑海中留得更久一点。</p>
 
                 
               </div>
@@ -586,11 +568,13 @@ addSwitch<span class="token punctuation">(</span><span class="token string">'sxx
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/SDN/">#SDN</a>
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/">#图形学</a>
       
-        <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/">#软件定义网络</a>
+        <a href="/tags/%E8%AF%BE%E7%A8%8B/">#课程</a>
       
-        <a href="/tags/Mininet/">#Mininet</a>
+        <a href="/tags/%E7%BC%96%E7%A8%8B/">#编程</a>
+      
+        <a href="/tags/%E6%9C%AC%E7%A7%91%E6%95%99%E8%82%B2/">#本科教育</a>
       
     </div>
   
@@ -602,8 +586,8 @@ addSwitch<span class="token punctuation">(</span><span class="token string">'sxx
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</div>
-      <div>https://greyishsong.ink/SDN实验（一）：Mininet的安装问题与Fat-Tree的构建/</div>
+      <div>图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</div>
+      <div>https://greyishsong.ink/图形学实验框架-Dandelion-始末（四）：渲染模式与软渲染流程/</div>
     </div>
     <div class="license-meta">
       
@@ -615,7 +599,7 @@ addSwitch<span class="token punctuation">(</span><span class="token string">'sxx
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2021年3月26日</div>
+          <div>2024年2月5日</div>
         </div>
       
       
@@ -657,18 +641,12 @@ addSwitch<span class="token punctuation">(</span><span class="token string">'sxx
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/%E4%BA%8C%E9%9B%B6%E4%BA%8C%E4%B8%80%EF%BC%9A%E6%98%A5%E5%B7%B2%E5%BD%92%E6%9D%A5/" title="二零二一：春已归来">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">二零二一：春已归来</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/%E8%BF%9E%E6%8E%A5%E5%9B%9E%E5%BF%86%E7%9A%84%E6%96%AD%E5%B1%82%EF%BC%88%E4%BA%8C%EF%BC%89/" title="连接回忆的断层（二）">
-                        <span class="hidden-mobile">连接回忆的断层（二）</span>
+                      <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染">
+                        <span class="hidden-mobile">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
@@ -722,6 +700,11 @@ addSwitch<span class="token punctuation">(</span><span class="token string">'sxx
 
 
   
+
+
+  
+  
+
 
 
 
