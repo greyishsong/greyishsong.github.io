@@ -1,0 +1,1182 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.svg">
+  <link rel="icon" href="/images/icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="greyishsong">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="原计划一面实验，一面总结，然而直到七月底都杂务缠身，只好现在才腾出手来，做一点回忆式的记录。 这一篇在于实现软件控制数据包的转发路径，路径的动态变化由控制器决定，而不是由交换机决定。控制器控制转发路径的手段包括两个方面：一是处理 OpenFlow 的 Packet-In 消息，二是下发流表项。此处正好涉及 OpenFlow 协议下控制器和网络的交互方式（控制平面），即收发消息（Message）。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDN实验（二）：动态变更转发路径">
+<meta property="og:url" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/index.html">
+<meta property="og:site_name" content="greyishsong">
+<meta property="og:description" content="原计划一面实验，一面总结，然而直到七月底都杂务缠身，只好现在才腾出手来，做一点回忆式的记录。 这一篇在于实现软件控制数据包的转发路径，路径的动态变化由控制器决定，而不是由交换机决定。控制器控制转发路径的手段包括两个方面：一是处理 OpenFlow 的 Packet-In 消息，二是下发流表项。此处正好涉及 OpenFlow 协议下控制器和网络的交互方式（控制平面），即收发消息（Message）。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/dynamic-ping.png">
+<meta property="og:image" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/dynamic-route.png">
+<meta property="article:published_time" content="2021-08-02T10:38:27.000Z">
+<meta property="article:modified_time" content="2022-09-06T03:35:48.179Z">
+<meta property="article:author" content="greyishsong">
+<meta property="article:tag" content="SDN">
+<meta property="article:tag" content="软件定义网络">
+<meta property="article:tag" content="Mininet">
+<meta property="article:tag" content="Ryu">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/dynamic-ping.png">
+  
+  
+  
+  <title>SDN实验（二）：动态变更转发路径 - greyishsong</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"greyishsong.ink","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"a1Kv3OSkTrFKyMVyQy5vOxqf-gzGzoHsz","app_key":"2ioOotea0dkGu0KrNYcWYS1r","server_url":"https://a1kv3osk.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/rss2.xml" title="greyishsong" type="application/rss+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>greyishsong</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/rss2.xml" target="_self">
+                <i class="iconfont icon-rss"></i>
+                <span>RSS</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/banner.gif') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SDN实验（二）：动态变更转发路径"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-08-02 18:38" pubdate>
+          2021年8月2日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          65 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="编程"
+        id="heading-41282bf95e43c64d579757573a03cdde" role="tab" data-toggle="collapse" href="#collapse-41282bf95e43c64d579757573a03cdde"
+        aria-expanded="true"
+      >
+        编程
+        <span class="list-group-count">(11)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-41282bf95e43c64d579757573a03cdde"
+           role="tabpanel" aria-labelledby="heading-41282bf95e43c64d579757573a03cdde">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/" title="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（三）：构造生成树进行ARP广播</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/" title="SDN实验（二）：动态变更转发路径"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">SDN实验（二）：动态变更转发路径</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/" title="SDN实验（四）：测定链路时延"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（四）：测定链路时延</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/" title="图形学实验框架 Dandelion 始末（一）：需求与设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（一）：需求与设计</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA/" title="电路课程设计-模型构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-模型构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" title="电路课程设计-程序设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-程序设计</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SDN实验（二）：动态变更转发路径</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>原计划一面实验，一面总结，然而直到七月底都杂务缠身，只好现在才腾出手来，做一点回忆式的记录。</p>
+<p>这一篇在于实现软件控制数据包的转发路径，路径的动态变化由控制器决定，而不是由交换机决定。控制器控制转发路径的手段包括两个方面：一是处理 OpenFlow 的 Packet-In 消息，二是下发流表项。此处正好涉及 OpenFlow 协议下控制器和网络的交互方式（控制平面），即收发消息（Message）。</p>
+<span id="more"></span>
+<h2 id="控制器与交换机的通信">控制器与交换机的通信</h2>
+<h3 id="SDN-中的控制器和交换机">SDN 中的控制器和交换机</h3>
+<p>从 SDN 网络的角度，控制器和交换机是一些独立的设备。其中控制器的可编程空间大，可以视作通用计算机；而交换机比较刻板，只能按规则首发一些固定的消息，并按照流表匹配的结果转发数据包。</p>
+<p>在一个传统的网络中，典型交换机会固定地将 A 网口的数据转发到 B (C, D, ...) 网口，是二层设备；典型的路由器则维护有路由表，能部分或全局地感知网络的拓扑信息，按照数据包的目的端决定转发的端口，是三层设备， SDN 网络则不然。在 OpenFlow 协议中，“交换机”的称呼更多是沿用习惯，实际上它兼具传统网络中交换机和路由器的特性。从本文的视角看， OpenFlow 交换机的特点是：</p>
+<ul>
+<li>不了解、不保存全局拓扑信息。</li>
+<li>能够解读数据包的头部，获知其二层、三层协议的控制信息，决定转发端口。</li>
+<li>存储有<strong>流表</strong>，每一项分为<strong>匹配域</strong> <em>Match Field</em> 和<strong>动作</strong> <em>Action</em> 两部分。转发行为依赖于数据包头的信息与流表项的匹配结果，对数据包执行最先匹配成功的流表项所记录的动作。</li>
+</ul>
+<p>在 OpenFlow 协议中，逻辑交换机亦称 Datapath ，以 Datapath ID 作为唯一标识。</p>
+<p>交换机启动时，流表是空的，控制器初始化时一般会向所有交换机下发一条流表项：发往控制器<sup><a href="#1">[1]</a></sup>。这一项的所有匹配域都是通配 (wild card) ，因此最初交换机唯一会做的就是把数据包转交给控制器。</p>
+<h3 id="OpenFlow-的-Packet-In-消息">OpenFlow 的 Packet-In 消息</h3>
+<p>OpenFlow 协议下，控制器与交换机之间的交互都依赖消息传递，不同的消息代表不同的控制信息，可以携带不同的数据。当交换机将数据包发给控制器时，采用的形式就是一个 Packet-In 消息。对于 Ryu 控制器，这个消息的格式如下<sup><a href="#2">[2]</a></sup>：</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>buffer_id</td>
+<td>ID assigned by datapath</td>
+</tr>
+<tr>
+<td>total_len</td>
+<td>Full length of frame</td>
+</tr>
+<tr>
+<td>reason</td>
+<td>Reason packet is being sent.<br>OFPR_NO_MATCH<br>OFPR_ACTION<br>OFPR_INVALID_TTL</td>
+</tr>
+<tr>
+<td>table_id</td>
+<td>ID of the table that was looked up</td>
+</tr>
+<tr>
+<td>cookie</td>
+<td>Cookie of the flow entry that was looked up</td>
+</tr>
+<tr>
+<td>match</td>
+<td>Instance of <code>OFPMatch</code></td>
+</tr>
+<tr>
+<td>data</td>
+<td>Ethernet frame</td>
+</tr>
+</tbody>
+</table>
+<p>本次实验中，只关注<code>reason</code>, <code>match</code>, <code>data</code>域。交换机上流表匹配失败，则<code>reason</code>域为 OFPR_NO_MATCH 。实验并不引入其他原因的 Packet-In ，进而可以直接认为只要是 Packet-In 就是流表匹配失败，不检查<code>reason</code>域。</p>
+<h3 id="Ryu-控制器消息处理">Ryu 控制器消息处理</h3>
+<p>OpenFlow 的消息主要分成三类：</p>
+<ul>
+<li>控制器到交换机消息 <em>Controller-to-Switch Messages</em>：这是控制器主动发送给交换机的消息，最常见的就是修改流表项的 Modify Flow Entry 。</li>
+<li>异步消息 <em>Asynchronous Messages</em>：这是交换机发给控制器的消息。</li>
+<li>对称消息 <em>Symmetric Messages</em>：可以互发的消息，例如 Hello, Echo Request/Reply 。</li>
+</ul>
+<p>Packet-In 属于异步消息，此类消息是异步处理的。</p>
+<p>Ryu 控制器将所有到来的消息放入消息队列，每次取出一个消息调用处理函数，处理消息时可以继续接收消息。每次<code>ryu-manager</code>加载一个 Ryu 应用，它就启动一个<strong>协程</strong><sup><a href="#3">[3]</a></sup>运行消息循环，开始接收消息。</p>
+<p>继承<code>RyuApp</code>基类，后，对方法使用<code>set_ev_cls</code>装饰器可以注册其为消息的处理函数，这个方法只需要一个参数<code>ev</code>，即事件对象。</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token decorator annotation punctuation">@set_ev_cls</span><span class="token punctuation">(</span>ofp_event<span class="token punctuation">.</span>EventOFPPacketIn<span class="token punctuation">,</span> MAIN_DISPATCHER<span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">_packet_in_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> ev<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    msg <span class="token operator">=</span> ev<span class="token punctuation">.</span>msg
+    datapath <span class="token operator">=</span> msg<span class="token punctuation">.</span>datapath
+    ofproto <span class="token operator">=</span> datapath<span class="token punctuation">.</span>ofproto
+    parser <span class="token operator">=</span> datapath<span class="token punctuation">.</span>ofproto_parser<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p><code>ev.msg</code>对应 OpenFlow 协议中的 Message ，不同在于多了描述交换机实例的<code>datapath</code>和描述 OpenFlow 协议的<code>ofproto</code>属性。如果希望控制交换机发送数据包，就要用<code>datapath.send_msg</code>方法。</p>
+<h2 id="实现切换路径">实现切换路径</h2>
+<p>建立一个简单的拓扑：</p>
+<p><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="710px" height="287px" viewBox="-0.5 -0.5 710 287" content="&lt;mxfile host=&quot;Electron&quot; modified=&quot;2021-08-08T05:36:35.251Z&quot; agent=&quot;5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/14.6.13 Chrome/89.0.4389.128 Electron/12.0.7 Safari/537.36&quot; etag=&quot;_Wjk401kU-2ZceZNA98j&quot; version=&quot;14.6.13&quot; type=&quot;device&quot;&gt;&lt;diagram id=&quot;_PdI4dcSc9nUDlH0FPhw&quot; name=&quot;第 1 页&quot;&gt;7Zpdc5s4FIZ/jS/LAOLLl/5Im9nZ7mTGF22vMgQU0BQQFXKM99evAMmASGtiO0C7+CLhHIkjofeRBAcWYBPnn4ibhp+xD6OFrvr5AmwXum47OvtbOI6Vw9TUyhEQ5FcurXbs0L+QO0W1PfJh1qpIMY4oSttODycJ9GjL5xKCD+1qzzhqt5q6Aew4dp4bdb1fkE9D7tWsZV1wD1EQ8qYd3a4KYldU5leSha6PDw0XuFuADcGYVkdxvoFRMXZiXKrzPv6k9NQxAhPa54TV0+dk+axRknwNtODHw19YJR94lBc32vML5p2lRzECrN9pcRjnQaGw4qHMw0p2QNQLYaYEMIEEeY8ZfqaVcwHWIY0jdorGDlOMEgrJ3QvrZsZ9vpuFsOiWyoxnFEUbHGFSNgfUpWmaa+bPKMHfYaNkvdo4W3AqEXKwgVy/QEIRE+1v9wlGDzhDFOGElT1hSnHcqLCKUFAUUJwyr8stDxZdZA68pxFKWKMCprKDOKGNbtyVP+bvCiBGkzUG84aLC/IJ4hhScmRVeOkJ86Owzco+1KyZvErYoMzm1VxOd3CKXAPADjgDb+BBn3kYkwcg8aAJeywewMzDmDwYxsR4MGYexuTBNCa2X5gzD6PuF3abB6COvD5Yl/Lg4Tjds0HMHt3Ef0wZEmkIiRtlSurNQPRfIKT1Qe/yYDuv8KC+Ew/2zMOoPFiOvGE44wLhnAcCJv6qeHJnVoIT2FabDQU5fuUDVxrfCkMxhbnNm4XbY9N6YBixyyiUqJw5omUsxQHcbERjVh2sMI4NQw7VgUldG1tr9SsVM7wnHjy/mFKXBJD+oh6PB/1WKqPLxJlNQfgIjFyKXtoJkNdA4C08FBOwRk6zJOQMiaXquvlZzYSFHEhiF8iBqoHpBCq5PF325agur0WV06U10XozWDcF/j0oFVm5c5Tqk6L0dKck4JJXvL6UAmnLBfqwlIonwqsxVZVli1Rlqf9/YTUnBasur4TWpbACKZA2MKw98s1vX1Mv2K4nD6reE1QwKVANee+/dFU15cT40Ktqj0T4iKBqU8HU7ImpMSlMTevMnt0XU0vGVOb9vTHtkZ8fBNP3YAv8EWzpy1uxNfDjj9Yj1z/wEqho1kS3a6Mnq/akWDXkhyD5drA3qzL05sCsvpZ3tiLKk2staK0feywKPmTlBycrVkGz0rxEQJSzo6D4f6+JUKxrVbSqoDMbKMxpewoQyBpwn8oKBXrunuKqybK4kx6Us4gx8v3i5CrJWY6luV6YWymryedeG2zuJHif+HUulPWff2RTzqXC/ujGKCqE2zC1EeuHrv4DD7fJP9o/WQwbfINX+Jb345ulH7VuQnqn/a5CNpew8ndOUFn9Gwh8kkoo7HQTzMMq3M0w77ob16xw/3eMksKa033nPKzC3cTsDswKX/GViTkxhUXgpsLGrPAVc1hOINpjK9zNr+zMWeErXvzLb/7HvtPSu6mJ+3kfvupWejCFmVl/l149o9Uf94O7/wA=&lt;/diagram&gt;&lt;/mxfile&gt;" style="background-color: rgb(255, 255, 255);"><defs/><g><rect x="161" y="106" width="50" height="75" fill="none" stroke="none" pointer-events="all"/><path d="M 161 181 L 161 113.92 L 200.79 113.92 L 200.79 181 Z M 172.84 106 L 161 113.92 L 200.79 113.92 L 211 106 Z M 211 170.43 L 211 106 L 200.79 113.92 L 200.79 181 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 176.6 126.07 L 194.34 126.07 L 194.34 128.18 L 176.6 128.18 L 176.6 131.35 L 168.53 127.13 L 176.6 122.38 Z M 187.89 144.56 L 170.15 144.56 L 170.15 141.92 L 187.89 141.92 L 187.89 138.75 L 195.95 142.98 L 187.89 147.73 Z" fill="#ffffff" stroke="none" pointer-events="all"/><rect x="261" y="1" width="50" height="75" fill="none" stroke="none" pointer-events="all"/><path d="M 261 76 L 261 8.92 L 300.79 8.92 L 300.79 76 Z M 272.84 1 L 261 8.92 L 300.79 8.92 L 311 1 Z M 311 65.43 L 311 1 L 300.79 8.92 L 300.79 76 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 276.6 21.07 L 294.34 21.07 L 294.34 23.18 L 276.6 23.18 L 276.6 26.35 L 268.53 22.13 L 276.6 17.38 Z M 287.89 39.56 L 270.15 39.56 L 270.15 36.92 L 287.89 36.92 L 287.89 33.75 L 295.95 37.98 L 287.89 42.73 Z" fill="#ffffff" stroke="none" pointer-events="all"/><rect x="391" y="1" width="50" height="75" fill="none" stroke="none" pointer-events="all"/><path d="M 391 76 L 391 8.92 L 430.79 8.92 L 430.79 76 Z M 402.84 1 L 391 8.92 L 430.79 8.92 L 441 1 Z M 441 65.43 L 441 1 L 430.79 8.92 L 430.79 76 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 406.6 21.07 L 424.34 21.07 L 424.34 23.18 L 406.6 23.18 L 406.6 26.35 L 398.53 22.13 L 406.6 17.38 Z M 417.89 39.56 L 400.15 39.56 L 400.15 36.92 L 417.89 36.92 L 417.89 33.75 L 425.95 37.98 L 417.89 42.73 Z" fill="#ffffff" stroke="none" pointer-events="all"/><rect x="491" y="106" width="50" height="75" fill="none" stroke="none" pointer-events="all"/><path d="M 491 181 L 491 113.92 L 530.79 113.92 L 530.79 181 Z M 502.84 106 L 491 113.92 L 530.79 113.92 L 541 106 Z M 541 170.43 L 541 106 L 530.79 113.92 L 530.79 181 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 506.6 126.07 L 524.34 126.07 L 524.34 128.18 L 506.6 128.18 L 506.6 131.35 L 498.53 127.13 L 506.6 122.38 Z M 517.89 144.56 L 500.15 144.56 L 500.15 141.92 L 517.89 141.92 L 517.89 138.75 L 525.95 142.98 L 517.89 147.73 Z" fill="#ffffff" stroke="none" pointer-events="all"/><rect x="321" y="191" width="50" height="75" fill="none" stroke="none" pointer-events="all"/><path d="M 321 266 L 321 198.92 L 360.79 198.92 L 360.79 266 Z M 332.84 191 L 321 198.92 L 360.79 198.92 L 371 191 Z M 371 255.43 L 371 191 L 360.79 198.92 L 360.79 266 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 336.6 211.07 L 354.34 211.07 L 354.34 213.18 L 336.6 213.18 L 336.6 216.35 L 328.53 212.13 L 336.6 207.38 Z M 347.89 229.56 L 330.15 229.56 L 330.15 226.92 L 347.89 226.92 L 347.89 223.75 L 355.95 227.98 L 347.89 232.73 Z" fill="#ffffff" stroke="none" pointer-events="all"/><rect x="1" y="111" width="78" height="70" fill="none" stroke="none" pointer-events="all"/><rect x="1" y="111" width="0" height="0" fill="none" stroke="#bac8d3" stroke-width="2" pointer-events="all"/><path d="M 67.86 170.93 L 67.86 158.2 L 1 158.2 L 1 170.93 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 47.16 165.09 L 64.13 165.09" fill="none" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 79 147.59 L 12.14 147.59 L 1 158.2 L 67.86 158.2 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 79 158.73 L 79 147.59 L 67.86 158.2 L 67.86 170.93 Z M 56.17 181 L 56.17 178.34 L 62.02 169.86 L 62.02 175.16 Z M 56.17 178.34 L 56.17 181 L 2.59 181 L 2.59 178.34 Z M 56.17 178.34 L 2.59 178.34 L 8.42 169.86 L 62.02 169.86 Z M 58.83 151.84 L 58.83 118.43 L 13.19 118.43 L 13.19 151.84 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 16.92 125.84 C 16.92 122.14 20.1 121.61 20.1 121.61 C 20.1 121.61 47.69 121.61 50.87 121.61 C 55.12 121.61 55.12 125.84 55.12 125.84 C 55.12 125.84 55.12 142.29 55.12 144.93 C 55.12 147.07 51.4 148.12 51.4 148.12 C 51.4 148.12 23.81 148.12 20.63 148.12 C 17.97 148.12 16.92 144.93 16.92 144.93 Z" fill="none" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 66.79 111 L 20.63 111 L 13.19 118.43 L 58.83 118.43 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 66.79 144.93 L 66.79 111 L 58.83 118.43 L 58.83 151.84 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><rect x="631" y="109" width="78" height="70" fill="none" stroke="none" pointer-events="all"/><rect x="631" y="109" width="0" height="0" fill="none" stroke="#bac8d3" stroke-width="2" pointer-events="all"/><path d="M 697.86 168.93 L 697.86 156.2 L 631 156.2 L 631 168.93 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 677.16 163.09 L 694.13 163.09" fill="none" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 709 145.59 L 642.14 145.59 L 631 156.2 L 697.86 156.2 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 709 156.73 L 709 145.59 L 697.86 156.2 L 697.86 168.93 Z M 686.17 179 L 686.17 176.34 L 692.02 167.86 L 692.02 173.16 Z M 686.17 176.34 L 686.17 179 L 632.59 179 L 632.59 176.34 Z M 686.17 176.34 L 632.59 176.34 L 638.42 167.86 L 692.02 167.86 Z M 688.83 149.84 L 688.83 116.43 L 643.19 116.43 L 643.19 149.84 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 646.92 123.84 C 646.92 120.14 650.1 119.61 650.1 119.61 C 650.1 119.61 677.69 119.61 680.87 119.61 C 685.12 119.61 685.12 123.84 685.12 123.84 C 685.12 123.84 685.12 140.29 685.12 142.93 C 685.12 145.07 681.4 146.12 681.4 146.12 C 681.4 146.12 653.81 146.12 650.63 146.12 C 647.97 146.12 646.92 142.93 646.92 142.93 Z" fill="none" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 696.79 109 L 650.63 109 L 643.19 116.43 L 688.83 116.43 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 696.79 142.93 L 696.79 109 L 688.83 116.43 L 688.83 149.84 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 65.74 146 L 161 143.5" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 211 106 L 261 38.5" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 206.5 175 L 321 228.5" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 311 38.5 L 391 38.5" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 371 228.5 L 491 181" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 441 38.5 L 491 108.5" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="
+stroke"/><path d="M 541 143.5 L 643.48 144" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><rect x="21" y="181" width="30" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 191px; margin-left: 36px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 16px; font-family: Courier New; color: #000000; line-height: 1.2; pointer-events: all; white-space: nowrap; "><font style="font-size: 16px">H1</font></div></div></div></foreignObject><text x="36" y="196" fill="#000000" font-family="Courier New" font-size="16px" text-anchor="middle">H1</text></switch></g><rect x="171" y="179" width="30" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 189px; margin-left: 186px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 16px; font-family: Courier New; color: #000000; line-height: 1.2; pointer-events: all; white-space: nowrap; ">S1</div></div></div></foreignObject><text x="186" y="194" fill="#000000" font-family="Courier New" font-size="16px" text-anchor="middle">S1</text></switch></g><rect x="271" y="76" width="30" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 86px; margin-left: 286px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 16px; font-family: Courier New; color: #000000; line-height: 1.2; pointer-events: all; white-space: nowrap; ">S2</div></div></div></foreignObject><text x="286" y="91" fill="#000000" font-family="Courier New" font-size="16px" text-anchor="middle">S2</text></switch></g><rect x="401" y="76" width="30" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 86px; margin-left: 416px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 16px; font-family: Courier New; color: #000000; line-height: 1.2; pointer-events: all; white-space: nowrap; ">S3</div></div></div></foreignObject><text x="416" y="91" fill="#000000" font-family="Courier New" font-size="16px" text-anchor="middle">S3</text></switch></g><rect x="331" y="266" width="30" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 276px; margin-left: 346px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 16px; font-family: Courier New; color: #000000; line-height: 1.2; pointer-events: all; white-space: nowrap; ">S4</div></div></div></foreignObject><text x="346" y="281" fill="#000000" font-family="Courier New" font-size="16px" text-anchor="middle">S4</text></switch></g><rect x="501" y="181" width="30" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 191px; margin-left: 516px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 16px; font-family: Courier New; color: #000000; line-height: 1.2; pointer-events: all; white-space: nowrap; ">S5</div></div></div></foreignObject><text x="516" y="196" fill="#000000" font-family="Courier New" font-size="16px" text-anchor="middle">S5</text></switch></g><rect x="651" y="181" width="30" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 1px; height: 1px; padding-top: 191px; margin-left: 666px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 16px; font-family: Courier New; color: #000000; line-height: 1.2; pointer-events: all; white-space: nowrap; ">H2</div></div></div></foreignObject><text x="666" y="196" fill="#000000" font-family="Courier New" font-size="16px" text-anchor="middle">H2</text></switch></g></g><switch><g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><a transform="translate(0,-5)" xlink:href="https://www.diagrams.net/doc/faq/svg-export-text-problems" target="_blank"><text text-anchor="middle" font-size="10px" x="50%" y="100%">Viewer does not support full SVG 1.1</text></a></switch></svg></p>
+<p>从 H1 主机到 H2 主机，有两条路径：</p>
+<ul>
+<li><code>H1-&gt;S1-&gt;S2-&gt;S3-&gt;S5-&gt;H2</code></li>
+<li><code>H1-&gt;S4-&gt;S5-&gt;H2</code></li>
+</ul>
+<p>实现路径切换的原理是：用新的流表项替换旧的，从而改变数据包的转发端口；对应到具体的实验上，还需要让控制器感知网络的某种变化，确定在何时下发新的流表项。</p>
+<p>流表项的下发、修改都是通过发送 Flow Entry Modify 消息完成的，用 Ryu API <code>OFPFlowMod</code> 构造。构造一个 Flow Entry Modify 消息至少应该指定：</p>
+<ul>
+<li>属于哪个交换机 (Datapath)</li>
+<li>优先级（决定流表项匹配时的顺序，数值大者优先进行匹配）</li>
+<li>匹配域（匹配何种内容的数据包头）</li>
+<li>超时时间：流表项定时删除，分为软超时（一定时间没有数据包则删除）、硬超时（一定时间后删除）两种。</li>
+<li>指令：完成何种动作</li>
+</ul>
+<p><code>OFPFlowMod</code>将返回一个包装好的消息对象，此时调用某个<code>datapath</code>实例的<code>send_msg</code>方法发送即可。</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python">mod <span class="token operator">=</span> parser<span class="token punctuation">.</span>OFPFlowMod<span class="token punctuation">(</span>datapath<span class="token operator">=</span>datapath<span class="token punctuation">,</span>
+                        priority<span class="token operator">=</span>priority<span class="token punctuation">,</span>
+                        idle_timeout<span class="token operator">=</span>idle_timeout<span class="token punctuation">,</span>
+                        hard_timeout<span class="token operator">=</span>hard_timeout<span class="token punctuation">,</span>
+                        instructions<span class="token operator">=</span>inst<span class="token punctuation">)</span>
+datapath<span class="token punctuation">.</span>send_msg<span class="token punctuation">(</span>mod<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>若这个交换机上之前存在匹配域一致的流表项，则此项将覆盖之，完成修改。</p>
+<h3 id="设定流表项超时实现周期性切换">设定流表项超时实现周期性切换</h3>
+<p>下发流表项时设定相同的硬超时，例如 5s ，则整个路径上所有的流表项 5s 后全部删除，就会发生 Table-miss 使交换机发送 Packet-In 消息到控制器。</p>
+<p>因此，周期性切换可以用 Packet-In 消息作为触发条件：当一个非 LLDP 的数据包<sup><a href="#4">[4]</a></sup>被发送到控制器时，就意味着交换机上发生了 Table-miss ，之前的流表项已经失效了。检查逻辑大致如下：（ARP 数据包单独处理是为了记录 IP 地址、MAC 地址、交换机端口之间的对应关系）</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python">pkt <span class="token operator">=</span> packet<span class="token punctuation">.</span>Packet<span class="token punctuation">(</span>msg<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+eth <span class="token operator">=</span> pkt<span class="token punctuation">.</span>get_protocols<span class="token punctuation">(</span>ethernet<span class="token punctuation">.</span>ethernet<span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+pkt_arp <span class="token operator">=</span> pkt<span class="token punctuation">.</span>get_protocol<span class="token punctuation">(</span>arp<span class="token punctuation">.</span>arp<span class="token punctuation">)</span>
+pkt_ipv4 <span class="token operator">=</span> pkt<span class="token punctuation">.</span>get_protocol<span class="token punctuation">(</span>ipv4<span class="token punctuation">.</span>ipv4<span class="token punctuation">)</span>
+<span class="token keyword">if</span> eth<span class="token punctuation">.</span>ethertype <span class="token operator">==</span> ether_types<span class="token punctuation">.</span>ETH_TYPE_LLDP<span class="token punctuation">:</span>
+	<span class="token keyword">return</span>
+<span class="token keyword">if</span> pkt_arp<span class="token punctuation">:</span>
+    <span class="token comment"># Process the ARP packet, recording the corresponding IP, MAC address and tuple (datapath id, port id).</span>
+    <span class="token keyword">return</span>
+<span class="token keyword">if</span> pkt_ipv4<span class="token punctuation">:</span>
+    <span class="token comment"># Find a new path from the source end to the destination end, install it.</span>
+    <span class="token comment"># Re-send the packet to the next hop on the new path.</span>
+    <span class="token keyword">return</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>按照这个逻辑来写代码，然后就会出错<del>此处应有狗头</del>。</p>
+<p>逻辑是理想的，我所设想的工作过程很美好：</p>
+<ol>
+<li>流表项失效，数据包发生 Table-miss ，Packet-In 消息发送到控制器</li>
+<li>控制器搜索路径、下发新的流表项、重新发送这个数据包到新路径上的下一跳</li>
+<li>下一个数据包正常发送</li>
+</ol>
+<p>现实的冷水泼在脸上，三步中后两步都是<strong>没有保证</strong>的。</p>
+<ul>
+<li>
+<p>控制器想要修改流表项，并不像给变量重新赋值这样简单。</p>
+<ul>
+<li>构造 Flow Entry Modify 消息之后，调用<code>send_msg</code>时只不过将这个消息<strong>送入发送队列</strong>，不保证立即发送给交换机。</li>
+<li>从控制器发往不同交换机的消息途经网络链路，其到达时间是没有保证的，<strong>不一定先发送先到达</strong>。</li>
+</ul>
+<p>这意味着，Packet-Out 消息（用来重发数据包）可能比某些 Flow Entry Modify 消息到达更早。</p>
+</li>
+<li>
+<p>交换机转发数据包动作迅速，不会等待流表项全部就位才转发。</p>
+</li>
+</ul>
+<p>上述设想的工作过程，实际上依赖于特定的<strong>时序</strong>保证，然而网络运作时并没有如此良好的时序规则。</p>
+<p>用比较简单的办法：记录上次搜索路径的时间，认为在每次搜索新路径后，短时间内（比如 1s）的 Packet-In 都是流表项没有全部就位的问题，不重新搜索路径，只作转发处理。</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">if</span> pkt_ipv4<span class="token punctuation">:</span>
+    current <span class="token operator">=</span> datetime<span class="token punctuation">.</span>datetime<span class="token punctuation">.</span>now<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>current <span class="token operator">-</span> self<span class="token punctuation">.</span>last<span class="token punctuation">[</span><span class="token punctuation">(</span>src_dpid<span class="token punctuation">,</span> dst_dpid<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span>seconds <span class="token operator">></span> <span class="token number">1</span><span class="token punctuation">:</span>
+    	<span class="token comment"># Find a new path from the source end to the destination end, install it.</span>
+        self<span class="token punctuation">.</span>last<span class="token punctuation">[</span><span class="token punctuation">(</span>src_dpid<span class="token punctuation">,</span> dst_dpid<span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> current
+    <span class="token comment"># Re-send the packet to the next hop on the new path.</span>
+    <span class="token keyword">return</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>寻找新路径很容易实现，我用了模拟栈实现非递归深搜来寻找路径，得到的结果和原先的路径比较是否相同即可。路径的存储格式是<code>(dpid, port)</code>二元组的<code>list</code>，依次表示数据包经过的每一个端口。</p>
+<p>测试时，让 <code>H1</code>连续 ping <code>H2</code> 20次：</p>
+<img src="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/dynamic-ping.png" srcset="/img/loading.gif" lazyload class="">
+<p>每次时延显著变长，就是流表项超时，控制器在下发流表项、进行转发。而在控制器端，也可以看到对应的路径切换：</p>
+<img src="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/dynamic-route.png" srcset="/img/loading.gif" lazyload class="">
+<h3 id="路径失效即时切换">路径失效即时切换</h3>
+<p>在 Mininet 控制台，可以执行<code>link up/down</code>命令，激活或禁用某条链路，模拟物理网络中链路的连接和断开。在 OpenFlow 的视角下，链路的连接、断开反映为端口 <em>Port</em> 的状态变化，这同样会导致交换机向控制器发送消息。 Ryu 对此的封装有两种形式：</p>
+<ul>
+<li><code>OFPPortStatus</code>消息，直接对应于 OpenFlow 的同名消息。</li>
+<li><code>EventPortAdd/Delete/Modify</code>事件分别表示端口的增加、删除、修改；<code>EventPortStatus</code>事件，表示端口状态的变化。</li>
+</ul>
+<p>上述的消息和事件都可以用<code>set_ev_cls</code>装饰器注册处理函数。简单起见，本次实验中只要端口状态变化，就认为是链路失效，删掉之前的所有流表项。这只需要注册<code>EventPortStatus</code>事件，在处理函数中删除保存的路径对应的流表项即可完成。</p>
+<div class="note note-info">
+            <p>删除流表项需要发送<code>OFPFlowMod</code>消息，指定<code>command</code>参数为<code>ofproto.OFPFC_DELETE</code>。需要注意的是，还必须指定<code>out_port</code>参数，否则消息可以被发送但删除并不会发生。这里直接令<code>out_port=ofproto.OFPP_ANY</code>表示删除任何满足条件的流表项。</p>
+          </div>
+<p>类似地，流表项被删除后下一个数据包将导致 Table-miss ，进而导致 Packet-In ，此时用最短路算法找跳数最少的路径并下发新的流表项。测试时在 Mininet 控制台执行<code>link s1 s4 down/up</code>就可以看到控制器端输出的路径变化情况了。</p>
+<h2 id="说明">说明</h2>
+<p>这是对校内实验的一些记录和想法，实验指导书、代码框架由老师和助教编写，涉及著作权问题，故不在此展示。这里附上自己编写的一部分代码，除此之外，至少还需要处理<code>EventOFPSwitchFeathures</code>和<code>EventOFPPacketIn</code>；并在拓扑发生变化时（<code>Switch/Port/Link</code>的<code>Add/Delete/Modify</code>事件）重新获取全局拓扑。</p>
+<ul>
+<li>搜索并保存新路径</li>
+</ul>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">def</span> <span class="token function">get_new_path</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> src<span class="token punctuation">,</span> dst<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> src <span class="token operator">==</span> dst<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    stack <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>  <span class="token comment"># use this list as a stack for DFS</span>
+    visited <span class="token operator">=</span> defaultdict<span class="token punctuation">(</span><span class="token keyword">lambda</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">)</span>
+    <span class="token comment"># record the children of a certain datapath when searching</span>
+    <span class="token comment"># &#123;dpid: [dpid, ...]&#125;</span>
+    children <span class="token operator">=</span> defaultdict<span class="token punctuation">(</span><span class="token keyword">lambda</span><span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token comment"># record the previous port of a certain datapath</span>
+    <span class="token comment"># &#123;dpid: (prev_dpid, prev_port, dpid, port)&#125;</span>
+    result <span class="token operator">=</span> defaultdict<span class="token punctuation">(</span><span class="token keyword">lambda</span><span class="token punctuation">:</span> defaultdict<span class="token punctuation">(</span><span class="token keyword">lambda</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    stack<span class="token punctuation">.</span>append<span class="token punctuation">(</span>src<span class="token punctuation">)</span>
+    <span class="token keyword">while</span> <span class="token builtin">len</span><span class="token punctuation">(</span>stack<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">:</span>
+        current <span class="token operator">=</span> stack<span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span>
+        visited<span class="token punctuation">[</span>current<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">True</span>
+
+        <span class="token keyword">if</span> current <span class="token operator">==</span> dst <span class="token keyword">and</span> stack <span class="token operator">!=</span> self<span class="token punctuation">.</span>pathnodes<span class="token punctuation">[</span><span class="token punctuation">(</span>src<span class="token punctuation">,</span> dst<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+            <span class="token keyword">break</span>
+
+        found <span class="token operator">=</span> <span class="token boolean">False</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span>temp_src<span class="token punctuation">,</span> temp_dst<span class="token punctuation">)</span> <span class="token keyword">in</span> self<span class="token punctuation">.</span>src_links<span class="token punctuation">[</span>current<span class="token punctuation">]</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> visited<span class="token punctuation">[</span>temp_dst<span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token boolean">False</span><span class="token punctuation">:</span>
+                temp_src_port <span class="token operator">=</span> self<span class="token punctuation">.</span>src_links<span class="token punctuation">[</span>current<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token punctuation">(</span>temp_src<span class="token punctuation">,</span> temp_dst<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+                temp_dst_port <span class="token operator">=</span> self<span class="token punctuation">.</span>src_links<span class="token punctuation">[</span>current<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token punctuation">(</span>temp_src<span class="token punctuation">,</span> temp_dst<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>
+                result<span class="token punctuation">[</span>temp_dst<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">(</span>temp_src<span class="token punctuation">,</span> temp_src_port<span class="token punctuation">,</span> temp_dst<span class="token punctuation">,</span> temp_dst_port<span class="token punctuation">)</span>
+                stack<span class="token punctuation">.</span>append<span class="token punctuation">(</span>temp_dst<span class="token punctuation">)</span>
+                children<span class="token punctuation">[</span>current<span class="token punctuation">]</span><span class="token punctuation">.</span>append<span class="token punctuation">(</span>temp_dst<span class="token punctuation">)</span>
+                found <span class="token operator">=</span> <span class="token boolean">True</span>
+                <span class="token keyword">break</span>
+        <span class="token keyword">if</span> found <span class="token operator">==</span> <span class="token boolean">False</span><span class="token punctuation">:</span>
+            stack<span class="token punctuation">.</span>pop<span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+            <span class="token keyword">for</span> child <span class="token keyword">in</span> children<span class="token punctuation">[</span>current<span class="token punctuation">]</span><span class="token punctuation">:</span>
+                visited<span class="token punctuation">[</span>child<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">False</span>
+
+    path <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token keyword">if</span> dst <span class="token keyword">not</span> <span class="token keyword">in</span> result<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token boolean">None</span>
+    self<span class="token punctuation">.</span>pathnodes<span class="token punctuation">[</span><span class="token punctuation">(</span>src<span class="token punctuation">,</span> dst<span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> stack
+    <span class="token keyword">while</span> <span class="token punctuation">(</span>dst <span class="token keyword">in</span> result<span class="token punctuation">)</span> <span class="token keyword">and</span> <span class="token punctuation">(</span>result<span class="token punctuation">[</span>dst<span class="token punctuation">]</span> <span class="token keyword">is</span> <span class="token keyword">not</span> <span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        path <span class="token operator">=</span> <span class="token punctuation">[</span>result<span class="token punctuation">[</span>dst<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">:</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token operator">+</span> path
+        path <span class="token operator">=</span> <span class="token punctuation">[</span>result<span class="token punctuation">[</span>dst<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">:</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token operator">+</span> path
+        dst <span class="token operator">=</span> result<span class="token punctuation">[</span>dst<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+    <span class="token keyword">return</span> path<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<ul>
+<li>处理链路状态变化</li>
+</ul>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">def</span> <span class="token function">delete_flow</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> datapath<span class="token punctuation">,</span> priority<span class="token punctuation">,</span> <span class="token keyword">match</span><span class="token punctuation">,</span> idle_timeout<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> hard_timeout<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ofproto <span class="token operator">=</span> datapath<span class="token punctuation">.</span>ofproto
+    parser <span class="token operator">=</span> datapath<span class="token punctuation">.</span>ofproto_parser
+
+    mod <span class="token operator">=</span> parser<span class="token punctuation">.</span>OFPFlowMod<span class="token punctuation">(</span>datapath<span class="token operator">=</span>datapath<span class="token punctuation">,</span> priority<span class="token operator">=</span>priority<span class="token punctuation">,</span>
+                            idle_timeout<span class="token operator">=</span>idle_timeout<span class="token punctuation">,</span>
+                            hard_timeout<span class="token operator">=</span>hard_timeout<span class="token punctuation">,</span>
+                            <span class="token keyword">match</span><span class="token operator">=</span><span class="token keyword">match</span><span class="token punctuation">,</span>
+                            out_port<span class="token operator">=</span>ofproto<span class="token punctuation">.</span>OFPP_ANY<span class="token punctuation">,</span>
+                            out_group<span class="token operator">=</span>ofproto<span class="token punctuation">.</span>OFPG_ANY<span class="token punctuation">,</span>
+                            command<span class="token operator">=</span>ofproto<span class="token punctuation">.</span>OFPFC_DELETE<span class="token punctuation">)</span>
+    datapath<span class="token punctuation">.</span>send_msg<span class="token punctuation">(</span>mod<span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@set_ev_cls</span><span class="token punctuation">(</span>ofp_event<span class="token punctuation">.</span>EventOFPPortStatus<span class="token punctuation">,</span> <span class="token punctuation">[</span>CONFIG_DISPATCHER<span class="token punctuation">,</span> MAIN_DISPATCHER<span class="token punctuation">,</span> DEAD_DISPATCHER<span class="token punctuation">,</span> HANDSHAKE_DISPATCHER<span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">_port_status_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> ev<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    datapath <span class="token operator">=</span> ev<span class="token punctuation">.</span>msg<span class="token punctuation">.</span>datapath
+    ofproto <span class="token operator">=</span> datapath<span class="token punctuation">.</span>ofproto
+    parser <span class="token operator">=</span> datapath<span class="token punctuation">.</span>ofproto_parser
+    <span class="token keyword">if</span> self<span class="token punctuation">.</span>path <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+
+    <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>path<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        datapath_path <span class="token operator">=</span> self<span class="token punctuation">.</span>datapaths<span class="token punctuation">[</span>self<span class="token punctuation">.</span>path<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">]</span>
+        <span class="token comment"># delete the flow entry from src to dst</span>
+        <span class="token keyword">match</span> <span class="token operator">=</span> parser<span class="token punctuation">.</span>OFPMatch<span class="token punctuation">(</span>in_port<span class="token operator">=</span>self<span class="token punctuation">.</span>path<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                                eth_src<span class="token operator">=</span>self<span class="token punctuation">.</span>eth_src<span class="token punctuation">,</span> eth_dst<span class="token operator">=</span>self<span class="token punctuation">.</span>eth_dst<span class="token punctuation">,</span> eth_type<span class="token operator">=</span><span class="token number">0x0800</span><span class="token punctuation">,</span>
+                                ipv4_src<span class="token operator">=</span>self<span class="token punctuation">.</span>ipv4_src<span class="token punctuation">,</span> ipv4_dst<span class="token operator">=</span>self<span class="token punctuation">.</span>ipv4_dst<span class="token punctuation">)</span>
+
+        self<span class="token punctuation">.</span>delete_flow<span class="token punctuation">(</span>datapath_path<span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">,</span> <span class="token keyword">match</span><span class="token punctuation">)</span>
+        <span class="token comment"># delete the flow entry from dst to src</span>
+        <span class="token keyword">match</span> <span class="token operator">=</span> parser<span class="token punctuation">.</span>OFPMatch<span class="token punctuation">(</span>in_port<span class="token operator">=</span>self<span class="token punctuation">.</span>path<span class="token punctuation">[</span>i<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                                eth_src<span class="token operator">=</span>self<span class="token punctuation">.</span>eth_dst<span class="token punctuation">,</span> eth_dst<span class="token operator">=</span>self<span class="token punctuation">.</span>eth_src<span class="token punctuation">,</span> eth_type<span class="token operator">=</span><span class="token number">0x0800</span><span class="token punctuation">,</span>
+                                ipv4_src<span class="token operator">=</span>self<span class="token punctuation">.</span>ipv4_dst<span class="token punctuation">,</span> ipv4_dst<span class="token operator">=</span>self<span class="token punctuation">.</span>ipv4_src<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>delete_flow<span class="token punctuation">(</span>datapath_path<span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">,</span> <span class="token keyword">match</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<h2 id="注释">注释</h2>
+<p><a name="#1">[1]</a>按照 <a target="_blank" rel="noopener" href="https://opennetworking.org/wp-content/uploads/2014/10/openflow-switch-v1.3.5.pdf#subsection.5.4">OpenFlow v1.3 标准文档 5.4 Table-miss</a>，所有流表必须至少包含一条 Table-miss 流表项（由控制器下发），优先级为最低（0），即指定数据包匹配失败时的处理动作。最常见的动作是发往控制器，这也是 Ryu 控制器下发的 table-miss 流表项。若为 OpenFlow v1.0/1.1/1.2 标准，则无需包含 table-miss 流表项（也不需要控制器下发），匹配失败会自动发往控制器。</p>
+<p><a name="#2">[2]</a><a target="_blank" rel="noopener" href="https://ryu.readthedocs.io/en/latest/ofproto_v1_3_ref.html#asynchronous-messages">Packet-In Message, Asynchronous Messages, OpenFlow v1.3 Messages and Structures, Ryu documentation</a></p>
+<p><a name="#3">[3]</a>虽然经常叫作 Thread，但 Ryu Manager 启动的不是经典意义上的线程，而是第三方库 eventlet 实现的协程。二者主要差别在于协程不能抢占，必须等待其他协程主动让出 CPU 才能执行。这一点对本次实验并无影响。</p>
+<p><a name="#4">[4]</a>LLDP 数据包是用于发现交换机、探查网络拓扑的数据包，被设定为<strong>一跳</strong>之后转发给控制器，因此会引发大量的 Packet-In 消息。如果不需要主动处理拓扑信息，LLDP 数据包可以直接丢弃。本次实验中，Packet-In 的频率远远高于流表项超时的频率，大部分都是无用的 LLDP 数据包，须加以分辨。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B/" class="category-chain-item">编程</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/SDN/" class="print-no-link">#SDN</a>
+      
+        <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" class="print-no-link">#软件定义网络</a>
+      
+        <a href="/tags/Mininet/" class="print-no-link">#Mininet</a>
+      
+        <a href="/tags/Ryu/" class="print-no-link">#Ryu</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SDN实验（二）：动态变更转发路径</div>
+      <div>https://greyishsong.ink/SDN实验（二）：动态变更转发路径/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>greyishsong</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年8月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - 非商业性使用">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - 相同方式共享">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">SDN实验（三）：构造生成树进行ARP广播</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/%E5%A4%8F%E6%97%A5%E4%B8%8D%E4%BA%89%E8%89%B3/" title="夏日不争艳">
+                        <span class="hidden-mobile">夏日不争艳</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+      <div class="col-lg-7 mx-auto nopadding-x-md">
+        <div class="container custom mx-auto">
+          <div class="social-share" data-sites="qzone,qq,weibo,wechat,douban,facebook,twitter"></div>
+        </div>
+      </div>
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      陕ICP备20002523号
+    </a>
+  </span>
+  
+    
+      <span>
+        <a
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=61010302000579"
+          rel="nofollow noopener"
+          class="beian-police"
+          target="_blank"
+        >
+          
+            <span style="visibility: hidden; width: 0">|</span>
+            <img src="/images/beian.png" srcset="/img/loading.gif" lazyload alt="police-icon"/>
+          
+          <span>陕公网安备 61010302000579号</span>
+        </a>
+      </span>
+    
+  
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script  src="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" ></script>
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<!-- hexo injector body_end start --><link href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script><!-- hexo injector body_end end --></body>
+</html>

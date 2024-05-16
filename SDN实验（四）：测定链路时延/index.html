@@ -1,0 +1,1012 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.svg">
+  <link rel="icon" href="/images/icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="greyishsong">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="当一个 SDN 网络建立时，Ryu 控制器通过 LLDP 数据包与交换机通信，获取网络的各种信息。借助 LLDP 数据包上的时间戳，控制器可以测定两个交换机之间的传输时延，用于寻找数据传输的最短路径等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDN实验（四）：测定链路时延">
+<meta property="og:url" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/index.html">
+<meta property="og:site_name" content="greyishsong">
+<meta property="og:description" content="当一个 SDN 网络建立时，Ryu 控制器通过 LLDP 数据包与交换机通信，获取网络的各种信息。借助 LLDP 数据包上的时间戳，控制器可以测定两个交换机之间的传输时延，用于寻找数据传输的最短路径等。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-08-16T10:39:53.000Z">
+<meta property="article:modified_time" content="2022-09-06T08:56:21.939Z">
+<meta property="article:author" content="greyishsong">
+<meta property="article:tag" content="SDN">
+<meta property="article:tag" content="软件定义网络">
+<meta property="article:tag" content="Mininet">
+<meta property="article:tag" content="Ryu">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>SDN实验（四）：测定链路时延 - greyishsong</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"greyishsong.ink","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"a1Kv3OSkTrFKyMVyQy5vOxqf-gzGzoHsz","app_key":"2ioOotea0dkGu0KrNYcWYS1r","server_url":"https://a1kv3osk.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/rss2.xml" title="greyishsong" type="application/rss+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>greyishsong</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/rss2.xml" target="_self">
+                <i class="iconfont icon-rss"></i>
+                <span>RSS</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/banner.gif') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SDN实验（四）：测定链路时延"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-08-16 18:39" pubdate>
+          2021年8月16日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="编程"
+        id="heading-41282bf95e43c64d579757573a03cdde" role="tab" data-toggle="collapse" href="#collapse-41282bf95e43c64d579757573a03cdde"
+        aria-expanded="true"
+      >
+        编程
+        <span class="list-group-count">(11)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-41282bf95e43c64d579757573a03cdde"
+           role="tabpanel" aria-labelledby="heading-41282bf95e43c64d579757573a03cdde">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/" title="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（三）：构造生成树进行ARP广播</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/" title="SDN实验（二）：动态变更转发路径"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（二）：动态变更转发路径</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/" title="SDN实验（四）：测定链路时延"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">SDN实验（四）：测定链路时延</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/" title="图形学实验框架 Dandelion 始末（一）：需求与设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（一）：需求与设计</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA/" title="电路课程设计-模型构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-模型构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" title="电路课程设计-程序设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-程序设计</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SDN实验（四）：测定链路时延</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>当一个 SDN 网络建立时，Ryu 控制器通过 LLDP 数据包与交换机通信，获取网络的各种信息。借助 LLDP 数据包上的时间戳，控制器可以测定两个交换机之间的传输时延，用于寻找数据传输的最短路径等。</p>
+<span id="more"></span>
+<h2 id="在-Ryu-中维护端口时延">在 Ryu 中维护端口时延</h2>
+<p>Ryu 维护的端口信息在<code>ryu/ryu/topology/switch.py</code>中定义为<code>PortData</code>类，可以修改其<code>__init__</code>来增加属性。当 LLDP 数据包规划从某个端口发送时，对应实例就会更新时间戳<code>timestamp = time.time()</code>。</p>
+<p>这里再加上一个时延属性</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python">self<span class="token punctuation">.</span>delay <span class="token operator">=</span> <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div></figure>
+<p>用于记录<strong>根据该端口转发出的 LLDP 包计算的时延</strong>。听来有些拗口，若用图示转发过程</p>
+<p><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="313px" height="322px" viewBox="-0.5 -0.5 313 322" content="&lt;mxfile host=&quot;Electron&quot; modified=&quot;2021-08-15T15:04:57.437Z&quot; agent=&quot;5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/14.6.13 Chrome/89.0.4389.128 Electron/12.0.7 Safari/537.36&quot; etag=&quot;mHM4eCmGfbP5u2dw-28u&quot; version=&quot;14.6.13&quot; type=&quot;device&quot;&gt;&lt;diagram id=&quot;8ygaH7sbF4w9pxboXoVX&quot; name=&quot;第 1 页&quot;&gt;7Zlbb5swFMc/TR4XAcaBPOa27WHTKmXS1r1ULrhg1WBknFs//QwYYky6XJomndo8RJxjc2zO/2cfnPTAJFl/4SiLv7MQ055jhesemPYcB4Kh/C4cm8oBoFM5Ik7CymVvHXPyhJXTUt4FCXHe6igYo4JkbWfA0hQHouVDnLNVu9sDo+1RMxThjmMeINr1/iKhiJXXHgy3DV8xiWI1tO94VUOC6s7qSfIYhWylucCsByacMVFdJesJpkXu6rxU931+prWZGMepOOSGJ/hz9Ac/LgHkOIM08MEP9klFWSK6UA+sJis2dQbkvLPiMllHhcL9gOQB6wcsyRYC8/wOpeFdhjnJYswRzftZ0APjWCRU3mPLy4yRVHacLeU8c+ULUR7jYl6WNB4IpRNGGS/HA9YQQjiW/lxw9oi1lvFo4k9B01LrITM5XmIuiFTtG7rH9IblRBCWyrZ7JgRLtA4jSqKiQbBMepGyAlxMUTrYQlCSykFrmsoJslRo05iVH+lXuZOR8fpZUexGarlEMEuw4BvZRd0AgKJDLY+hMldb1jy/csUaZZ7qhhTdURN4C4C8UAwcwYNzKg/5ioggxnk/wqmEIbjL2YOonB84HIxDs+0pHHbxAK0dPMBX4gF88HBNHlzvjfHg7ucBp+GoKLxF3ijKc2LUA/nofPNbN26LRPZhbU7XKrGVtdGtG8mSfJJCjNLZgcAau9PBqMk+Djvl3ci9nDtb8ADvXwQC8QiLfZtnV8s9WtU+jikSZNme7i4B1Qg3xcLRKolroGIZNaJ6THWX/p5gBHL8diBgG4GqPHQClTw1j306YvCMiGlU3bagOgIxvCaiiuUPlFkB60NlbqMVxkYzroJr/Zq8D1dwTVxdy8B1cCKuLjQCXRjXwRlwbQiDOmBH06Vhbzk69/ab3VqdA1l9pkxeaGs138rM1+9DWQUDI5BzWVa9l7PaoWLiwTH0jqDiWirurWsH7ziD6xZI/z2raCa/UfXotThsB7LNRf3KKg7fs4rmy6p9qoqOeUAyA72yivXS12SUh0OpC6WykJqCyoOg+JeEKUuxceJVrs5J1DywJiQMi2HGq5gIPM9QWXZX8kQufZwt0rA5UOePuDyFl0bv5YdU4A5bGtSSaCi5O1Aya9/Zzqh290fNuf0/aGH8kGCVn3P9sATbNevqIjldkbo74PsSyfUuJpI0t/88VJvh9u8bMPsL&lt;/diagram&gt;&lt;/mxfile&gt;" style="background-color: rgb(255, 255, 255);"><defs/><g><rect x="121" y="20" width="78" height="70" fill="none" stroke="none" pointer-events="all"/><rect x="121" y="20" width="0" height="0" fill="none" stroke="#bac8d3" stroke-width="2" pointer-events="all"/><path d="M 187.86 79.93 L 187.86 67.2 L 121 67.2 L 121 79.93 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 167.16 74.09 L 184.13 74.09" fill="none" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 199 56.59 L 132.14 56.59 L 121 67.2 L 187.86 67.2 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 199 67.73 L 199 56.59 L 187.86 67.2 L 187.86 79.93 Z M 176.17 90 L 176.17 87.34 L 182.02 78.86 L 182.02 84.16 Z M 176.17 87.34 L 176.17 90 L 122.59 90 L 122.59 87.34 Z M 176.17 87.34 L 122.59 87.34 L 128.42 78.86 L 182.02 78.86 Z M 178.83 60.84 L 178.83 27.43 L 133.19 27.43 L 133.19 60.84 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 136.92 34.84 C 136.92 31.14 140.1 30.61 140.1 30.61 C 140.1 30.61 167.69 30.61 170.87 30.61 C 175.12 30.61 175.12 34.84 175.12 34.84 C 175.12 34.84 175.12 51.29 175.12 53.93 C 175.12 56.07 171.4 57.12 171.4 57.12 C 171.4 57.12 143.81 57.12 140.63 57.12 C 137.97 57.12 136.92 53.93 136.92 53.93 Z" fill="none" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 186.79 20 L 140.63 20 L 133.19 27.43 L 178.83 27.43 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 186.79 53.93 L 186.79 20 L 178.83 27.43 L 178.83 60.84 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><rect x="1" y="220" width="50" height="75" fill="none" stroke="none" pointer-events="all"/><path d="M 1 295 L 1 227.92 L 40.79 227.92 L 40.79 295 Z M 12.84 220 L 1 227.92 L 40.79 227.92 L 51 220 Z M 51 284.43 L 51 220 L 40.79 227.92 L 40.79 295 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 16.6 240.07 L 34.34 240.07 L 34.34 242.18 L 16.6 242.18 L 16.6 245.35 L 8.53 241.13 L 16.6 236.38 Z M 27.89 258.56 L 10.15 258.56 L 10.15 255.92 L 27.89 255.92 L 27.89 252.75 L 35.95 256.98 L 27.89 261.73 Z" fill="#ffffff" stroke="none" pointer-events="all"/><rect x="261" y="220" width="50" height="75" fill="none" stroke="none" pointer-events="all"/><path d="M 261 295 L 261 227.92 L 300.79 227.92 L 300.79 295 Z M 272.84 220 L 261 227.92 L 300.79 227.92 L 311 220 Z M 311 284.43 L 311 220 L 300.79 227.92 L 300.79 295 Z" fill="#09555b" stroke="#bac8d3" stroke-width="2" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/><path d="M 276.6 240.07 L 294.34 240.07 L 294.34 242.18 L 276.6 242.18 L 276.6 245.35 L 268.53 241.13 L 276.6 236.38 Z M 287.89 258.56 L 270.15 258.56 L 270.15 255.92 L 287.89 255.92 L 287.89 252.75 L 295.95 256.98 L 287.89 261.73 Z" fill="#ffffff" stroke="none" pointer-events="all"/><path d="M 261 257.5 L 57.37 257.5" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 52.12 257.5 L 59.12 254 L 57.37 257.5 L 59.12 261 Z" fill="#0b4d6a" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="all"/><path d="M 188.08 79.5 L 282.36 214.78" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 285.36 219.08 L 278.49 215.34 L 282.36 214.78 L 284.23 211.34 Z" fill="#0b4d6a" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="all"/><path d="M 26 220 L 118.76 95.11" fill="none" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 121.89 90.9 L 120.53 98.6 L 118.76 95.11 L 114.91 94.43 Z" fill="#0b4d6a" stroke="#0b4d6a" stroke-miterlimit="10" pointer-events="all"/><path d="M 71 240 L 244.63 240" fill="none" stroke="#c75b57" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 249.88 240 L 242.88 243.5 L 244.63 240 L 242.88 236.5 Z" fill="#c75b57" stroke="#c75b57" stroke-miterlimit="10" pointer-events="all"/><path d="M 251 210 L 184.42 105.37" fill="none" stroke="#c75b57" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 181.6 100.94 L 188.31 104.97 L 184.42 105.37 L 182.41 108.73 Z" fill="#c75b57" stroke="#c75b57" stroke-miterlimit="10" pointer-events="all"/><path d="M 131 110 L 64.65 204.78" fill="none" stroke="#c75b57" stroke-miterlimit="10" pointer-events="stroke"/><path d="M 61.64 209.08 L 62.79 201.34 L 64.65 204.78 L 68.52 205.36 Z" fill="#c75b57" stroke="#c75b57" stroke-miterlimit="10" pointer-events="all"/><rect x="140" y="0" width="40" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 38px; height: 1px; padding-top: 10px; margin-left: 141px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">Controller</div></div></div></foreignObject><text x="160" y="14" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Contro...</text></switch></g><rect x="6" y="300" width="40" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 38px; height: 1px; padding-top: 310px; margin-left: 7px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">S1</div></div></div></foreignObject><text x="26" y="314" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">S1</text></switch></g><rect x="266" y="300" width="40" height="20" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 38px; height: 1px; padding-top: 310px; margin-left: 267px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">S2</div></div></div></foreignObject><text x="286" y="314" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">S2</text></switch></g></g><switch><g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><a transform="translate(0,-5)" xlink:href="https://www.diagrams.net/doc/faq/svg-export-text-problems" target="_blank"><text text-anchor="middle" font-size="10px" x="50%" y="100%">Viewer does not support full SVG 1.1</text></a></switch></svg></p>
+<p>则 LLDP 包的生命周期是：（以绿色箭头所示为例）</p>
+<ol>
+<li>由 Ryu 控制器构造，发送时对应 S2 交换机上某个端口的<code>PortData</code>实例更新时间戳。</li>
+<li>被 S2 交换机转发给 S1 交换机。</li>
+<li>被 S1 交换机发送给控制器，触发 Packet-In ，控制器收到后，可以解析出这个 LLDP 包的源端口是 S2 上的某个端口。</li>
+</ol>
+<p>RyuApp 是运行于控制器的程序，维护的<code>PortData</code>也都在控制器端。第一步的时间戳是控制器发送 LLDP 包的时间，第三步的“当前时间”是控制器收到包的时间。因此，用当前时间减去时间戳，得到的就是 LLDP 数据包经过三步所用的总时延。这个时延维护在<code>PortData</code>实例的<code>delay</code>属性里。</p>
+<p>为了用上述方法更新<code>delay</code>属性，还需要改动<code>ryu/ryu/topology/switch.py</code>中的<code>Switches</code>类，在它的<code>lldp_packet_in_handler</code>方法中更新<code>self.ports</code><sup><a href="#1">[1]</a></sup><a name="back-1"></a>维护的所有端口。</p>
+<p>用类似的方法可以得到反方向（红色箭头所示）的时延。</p>
+<h2 id="估计往返时延-RTT">估计往返时延 RTT</h2>
+<p>网络链路的时延是实时变化的，只能进行估计式的测量。</p>
+<p>LLDP 数据包被控制器发给交换机后，转发一次（一跳）就会被再次发回控制器。在上方图示的过程中，往返两次转发的总时延可以表示为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>l</mi><mi>l</mi><mi>d</mi><mi>p</mi><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>t</mi><mrow><mi>l</mi><mi>l</mi><mi>d</mi><mi>p</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">t_{lldp1}+t_{lldp2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9012em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">ll</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">p</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9012em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">ll</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">p</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span> ，另一方面，这也是如下两项的和：</p>
+<ul>
+<li>交换机 S1 和 S2 之间的往返时延 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>T</mi><msub><mi>T</mi><mrow><mn>1</mn><mo separator="true">,</mo><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">RTT_{1,2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">RT</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mpunct mtight">,</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>​​</li>
+<li>控制器到两台交换机的往返时延 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>e</mi><mi>c</mi><mi>h</mi><mi>o</mi><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>t</mi><mrow><mi>e</mi><mi>c</mi><mi>h</mi><mi>o</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">t_{echo1}+t_{echo2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7651em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ec</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">o</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7651em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ec</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">o</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+</ul>
+<p>由此得到 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>T</mi><msub><mi>T</mi><mrow><mn>1</mn><mo separator="true">,</mo><mn>2</mn></mrow></msub><mo>=</mo><msub><mi>t</mi><mrow><mi>l</mi><mi>l</mi><mi>d</mi><mi>p</mi><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>t</mi><mrow><mi>l</mi><mi>l</mi><mi>d</mi><mi>p</mi><mn>2</mn></mrow></msub><mo>−</mo><mo stretchy="false">(</mo><msub><mi>t</mi><mrow><mi>e</mi><mi>c</mi><mi>h</mi><mi>o</mi><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>t</mi><mrow><mi>e</mi><mi>c</mi><mi>h</mi><mi>o</mi><mn>2</mn></mrow></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">RTT_{1,2}=t_{lldp1}+t_{lldp2}-(t_{echo1}+t_{echo2})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">RT</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span><span class="mpunct mtight">,</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9012em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">ll</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">p</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9012em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">ll</span><span class="mord mathnormal mtight">d</span><span class="mord mathnormal mtight">p</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ec</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">o</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ec</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">o</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>​​​​ ，可以用这个式子估计往返时延<sup><a href="#2">[2]</a></sup><a name="back-2"></a>（忽略了构造、解析、转发数据包的时间）。​</p>
+<p>OpenFlow 的 Echo Request/Reply 消息可以用于测量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mrow><mi>e</mi><mi>c</mi><mi>h</mi><mi>o</mi><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi>t</mi><mrow><mi>e</mi><mi>c</mi><mi>h</mi><mi>o</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">t_{echo1},t_{echo2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ec</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">o</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">ec</span><span class="mord mathnormal mtight">h</span><span class="mord mathnormal mtight">o</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>​ 两个时延，具体方法是：周期性发送以时间戳作为数据的 Echo Request ，时间戳会被 Echo Reply 回送，与当前时间相减即得时延。</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token decorator annotation punctuation">@set_ev_cls</span><span class="token punctuation">(</span>ofp_event<span class="token punctuation">.</span>EventOFPEchoReply<span class="token punctuation">,</span> MAIN_DISPATCHER<span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">_echo_reply_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> ev<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        <span class="token comment"># evaluate the echo delay from controller to `ev.msg.datapath`</span>
+        self<span class="token punctuation">.</span>echo_delay<span class="token punctuation">[</span>ev<span class="token punctuation">.</span>msg<span class="token punctuation">.</span>datapath<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">]</span> <span class="token operator">=</span> delay
+    <span class="token keyword">except</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+    
+<span class="token keyword">def</span> <span class="token function">_send_echo_request</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># run as a coroutine</span>
+    <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> each datapath
+            <span class="token comment"># construct and send echo request</span>
+            <span class="token comment"># sleep some time</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<h3 id="网络同步对数据的影响">网络同步对数据的影响</h3>
+<p>应用运行在控制器上，但数据需要等待网络传输。LLDP 时延和 Echo 往返时延都需要等待数据包传回，任何一个为空都不能计算 RTT ；即使这些数据都就位，也未必正确。</p>
+<p>控制器端调用<code>dp.send_msg</code>，会把相应数据包送入消息队列。如果大量数据包同时发送，有些数据包可能等待一段时间，但附加在数据包中的时间戳是<strong>送入队列</strong>的时间，并非实际发出的时间。于是 Echo 往返时延有可能异常地长——例如数十毫秒——甚至比测出的 LLDP 时延还要长。依此计算，网络的拓扑图中将出现负权边，即到达在发送之前，这显然不可能。</p>
+<p>那么，一方面需要让 Echo Request 较为均匀地发送，避免集中；另一方面需要检查算出的链路往返时延是否为负，避免构造出负权边。</p>
+<h3 id="协程调度问题">协程调度问题</h3>
+<p>实验是在 ARPANET 网络拓扑上进行，一共有三个协程：</p>
+<ul>
+<li>消息处理协程（由 App Manager 启动的主协程）</li>
+<li>更新拓扑并下发生成树的协程（解决 ARP 广播风暴）</li>
+<li>发送 Echo Request 获取时延的协程</li>
+</ul>
+<p>每个协程都要等待其他协程主动让出 CPU 才能执行，因此任何一个协程必须控制自己的执行时间，否则其他协程可能不能正常执行<sup><a href="#3">[3]</a></sup><a name="back-3"></a>。对于发送 Echo Request 的协程，每发送一轮之后应该<code>hub.sleep</code>主动休眠足够长的时间，所以最后的<code>_send_echo_request</code>是这样：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">def</span> <span class="token function">_send_echo_request</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> dpid <span class="token keyword">in</span> self<span class="token punctuation">.</span>id2dp<span class="token punctuation">:</span>
+            <span class="token comment"># construct and send echo request</span>
+            hub<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">0.1</span><span class="token punctuation">)</span>
+        hub<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<h2 id="说明">说明</h2>
+<p>SDN 课内实验共有四次，第一次的“自学习交换机”参考资料多如牛毛，我自不必赘述；最后一次实验介绍的 VeriFlow 工具，精华在于论文<sup><a href="#4">[4]</a></sup><a name="back-4"></a>，对此我只有献丑之技，没有剖析之能，亦不再记录。</p>
+<p>这几篇文章大多来自作业和实验报告，以提取思路、增进理解为主，增删过一些内容。时间所限，我并没有太多时间将实验的内容和相关技术资料认真整理成笔记，只借此简单提取、留档；也希望可以作为日后同学粗疏的参考。若有所助力，不胜荣幸。</p>
+<p>Ryu 的资料主要有两个来源，均为官方维护人员编写：</p>
+<ul>
+<li>
+<p>Read The Docs 文档，介绍 Ryu 中关于应用、协议 API ，但对于源码结构、协程调度没有讲解。</p>
+<p><a target="_blank" rel="noopener" href="https://ryu.readthedocs.io/en/latest/index.html">https://ryu.readthedocs.io/en/latest/index.html</a></p>
+</li>
+<li>
+<p>Ryu Book ，讲解 Ryu 如何使用、如何工作，详尽全面，只是不太方便查。</p>
+<p><a target="_blank" rel="noopener" href="http://osrg.github.io/ryu-book/en/Ryubook.pdf">http://osrg.github.io/ryu-book/en/Ryubook.pdf</a></p>
+</li>
+</ul>
+<h2 id="注释">注释</h2>
+<p><a name="1">[1]</a><a href="#back-1">^</a>这是一个键为<code>Port</code>实例，值为<code>PortData</code>实例的字典。</p>
+<p><a name="2">[2]</a><a href="#back-2">^</a>思路来自实验指导书。</p>
+<p><a name="3">[3]</a><a href="#back-3">^</a>我的程序因此出现了各种奇怪的 Bug ，包括但不限于：时而正常工作时而卡在发送 Echo Request 的过程中、根据 Echo Reply 计算的时延很大（很小）、始终不能向所有的交换机发出 Echo Request ，等等。不外乎是影响了消息处理和更新拓扑的协程正常工作。</p>
+<p><a name="4">[4]</a><a href="#back-4">^</a><a target="_blank" rel="noopener" href="https://www.usenix.org/system/files/conference/nsdi13/nsdi13-final100.pdf">Ahmed Khurshid, Xuan Zou, Wenxuan Zhou, Matthew Caesar, P. Brighten Godfrey. VeriFlow: Verifying Network-Wide Invariants in Real Time. In NSDI</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B/" class="category-chain-item">编程</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/SDN/" class="print-no-link">#SDN</a>
+      
+        <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" class="print-no-link">#软件定义网络</a>
+      
+        <a href="/tags/Mininet/" class="print-no-link">#Mininet</a>
+      
+        <a href="/tags/Ryu/" class="print-no-link">#Ryu</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SDN实验（四）：测定链路时延</div>
+      <div>https://greyishsong.ink/SDN实验（四）：测定链路时延/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>greyishsong</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年8月16日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - 非商业性使用">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - 相同方式共享">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/%E4%B8%83%E6%9C%88%E9%97%B2%E9%80%9B/" title="七月闲逛">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">七月闲逛</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播">
+                        <span class="hidden-mobile">SDN实验（三）：构造生成树进行ARP广播</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+      <div class="col-lg-7 mx-auto nopadding-x-md">
+        <div class="container custom mx-auto">
+          <div class="social-share" data-sites="qzone,qq,weibo,wechat,douban,facebook,twitter"></div>
+        </div>
+      </div>
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      陕ICP备20002523号
+    </a>
+  </span>
+  
+    
+      <span>
+        <a
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=61010302000579"
+          rel="nofollow noopener"
+          class="beian-police"
+          target="_blank"
+        >
+          
+            <span style="visibility: hidden; width: 0">|</span>
+            <img src="/images/beian.png" srcset="/img/loading.gif" lazyload alt="police-icon"/>
+          
+          <span>陕公网安备 61010302000579号</span>
+        </a>
+      </span>
+    
+  
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script  src="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" ></script>
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<!-- hexo injector body_end start --><link href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script><!-- hexo injector body_end end --></body>
+</html>

@@ -1,0 +1,1034 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.svg">
+  <link rel="icon" href="/images/icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="greyishsong">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="OpenGL 标准描述了一种 C&#x2F;S 架构的 GPU 编程模式：CPU 上执行的程序是 Client ，通过调用 API 可以查询或更改全局状态，也可以请求渲染；GPU 是 Server ，响应查、改状态或渲染的请求。这种设计思路导致编程时需要时刻考虑许多状态，而每次进行渲染都要更改若干个状态。为了更方便地管理这些状态，我在 Dandelion 框架实现中对 OpenGL 略作封装，屏蔽了大部分细">
+<meta property="og:type" content="article">
+<meta property="og:title" content="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染">
+<meta property="og:url" content="https://greyishsong.ink/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/index.html">
+<meta property="og:site_name" content="greyishsong">
+<meta property="og:description" content="OpenGL 标准描述了一种 C&#x2F;S 架构的 GPU 编程模式：CPU 上执行的程序是 Client ，通过调用 API 可以查询或更改全局状态，也可以请求渲染；GPU 是 Server ，响应查、改状态或渲染的请求。这种设计思路导致编程时需要时刻考虑许多状态，而每次进行渲染都要更改若干个状态。为了更方便地管理这些状态，我在 Dandelion 框架实现中对 OpenGL 略作封装，屏蔽了大部分细">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://greyishsong.ink/images/dandelion.png">
+<meta property="article:published_time" content="2024-01-28T11:33:47.000Z">
+<meta property="article:modified_time" content="2024-01-28T11:35:51.979Z">
+<meta property="article:author" content="greyishsong">
+<meta property="article:tag" content="图形学">
+<meta property="article:tag" content="课程">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="本科教育">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://greyishsong.ink/images/dandelion.png">
+  
+  
+  
+  <title>图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染 - greyishsong</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"greyishsong.ink","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"a1Kv3OSkTrFKyMVyQy5vOxqf-gzGzoHsz","app_key":"2ioOotea0dkGu0KrNYcWYS1r","server_url":"https://a1kv3osk.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/rss2.xml" title="greyishsong" type="application/rss+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>greyishsong</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/rss2.xml" target="_self">
+                <i class="iconfont icon-rss"></i>
+                <span>RSS</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/dandelion.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-01-28 19:33" pubdate>
+          2024年1月28日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          56 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="编程"
+        id="heading-41282bf95e43c64d579757573a03cdde" role="tab" data-toggle="collapse" href="#collapse-41282bf95e43c64d579757573a03cdde"
+        aria-expanded="true"
+      >
+        编程
+        <span class="list-group-count">(11)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-41282bf95e43c64d579757573a03cdde"
+           role="tabpanel" aria-labelledby="heading-41282bf95e43c64d579757573a03cdde">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/" title="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（三）：构造生成树进行ARP广播</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/" title="SDN实验（二）：动态变更转发路径"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（二）：动态变更转发路径</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/" title="SDN实验（四）：测定链路时延"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（四）：测定链路时延</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/" title="图形学实验框架 Dandelion 始末（一）：需求与设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（一）：需求与设计</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA/" title="电路课程设计-模型构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-模型构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" title="电路课程设计-程序设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-程序设计</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>OpenGL 标准描述了一种 C/S 架构的 GPU 编程模式：CPU 上执行的程序是 Client ，通过调用 API 可以查询或更改全局状态，也可以请求渲染；GPU 是 Server ，响应查、改状态或渲染的请求。这种设计思路导致编程时需要时刻考虑许多状态，而每次进行渲染都要更改若干个状态。为了更方便地管理这些状态，我在 Dandelion 框架实现中对 OpenGL 略作封装，屏蔽了大部分细粒度的状态修改操作。</p>
+<span id="more"></span>
+<h2 id="实时渲染需求与顶层-API">实时渲染需求与顶层 API</h2>
+<p>我在第一篇文章中提到过：Dandelion 中存在两种渲染过程，分别是用于预览的实时硬件渲染与用作实验的离线软件渲染。本文只讨论其中硬件渲染的部分，软件渲染与 OpenGL 无关。</p>
+<p>由于 Dandelion 是参照 Blender 设计的，对实时预览的着色效果要求很低，只需分辨出物体的形状即可。除了场景中的物体以外，</p>
+<ul>
+<li>在渲染模式下还需要渲染出相机的视椎体以便调整渲染相机、渲染出设置好的光源</li>
+<li>在建模模式下还需要渲染出 mesh 的顶点和边来强调基本图元</li>
+</ul>
+<p>这些渲染需求可以概括为渲染顶点、线条和面片三类图元，而每一类图元的渲染效果是相同的，不同情况下渲染任务的差别在于待渲染图元的差别。因此，我准备用两个顶层的渲染类来满足两大类渲染需求：</p>
+<ul>
+<li><code>GL::Mesh</code> 面向以 mesh 为数据源的渲染任务</li>
+<li><code>GL::LineSet</code> 面向以线条为数据源的渲染任务</li>
+</ul>
+<p>最初我以为二者既然功能不同，实现起来应该也有明显的差异。但很快就发现 Mesh 有时也需要渲染线框，导致两个类的渲染函数 <code>Mesh::render</code> 与 <code>LineSet::render</code> 实现起来几乎没有区别，或者说 <code>LineSet::render</code> 完全是 <code>Mesh::render</code> 的一部分，只不过去掉了选择被渲染图元类型的代码。所以这里只聊 <code>GL::Mesh</code> 的渲染过程。</p>
+<p>根据我对 <code>GL</code> 这个 namespace 的功能规划，<code>GL::Mesh</code> 只负责处理渲染操作，而不关心这些渲染操作的语义是什么。比如调用 <code>Mesh::render</code> 时指定渲染边和顶点，而不是指定渲染 Mesh 的“线框”；或者指定渲染面片，而不是 Mesh 的“实体”。因此，<code>Mesh::render</code> 需要完成的工作就是根据图元类型绑定 VAO 、设置颜色和材质并发送 draw call ，而 <code>GL::Mesh</code> 类中需要维护的信息就是与这个 Mesh 有关的 VAO 和数据 Buffer 。</p>
+<p>Dandelion 实时渲染的基本流程和上一篇文章中渲染地面网格的过程基本一致：</p>
+<ol>
+<li>在 <code>Controller::render</code> 函数中，根据 <code>main_camera</code> 的参数计算出 View / Projection 矩阵，并设置 shader 中的 uniform 变量。</li>
+<li>进入 <code>Scene::render</code> 函数，遍历所有的 <code>Object</code> 并调用 <code>Object::render</code> 函数渲染物体。</li>
+<li>进入 <code>Object::render</code> 函数，设置 shader uniform 变量传入 Model 矩阵和材质参数，遍历所有的 <code>GL::Mesh</code> 对象，调用 <code>GL::Mesh::render</code> 渲染 mesh 。</li>
+<li>调用 <code>glDrawArrays</code> / <code>glDrawElements</code> 绘制图元。</li>
+</ol>
+<p>在这个流程中，<code>Scene</code> 和 <code>Object</code> 是具有语义的“场景”和“物体”，而 <code>Mesh</code> 则是位于下层的“无语义对象”。这里的无语义，是指它在 UI 上不存在对应物，也不直接与用户产生任何交互，用户不会感受到它的存在。当程序加载模型文件后，场景不再为空，每一帧渲染时 <code>Scene::render</code> 函数就会调用每个物体的 <code>Object::render</code> 函数，而在 <code>Object::render</code> 中会调用 <code>Mesh::render</code> 函数完成渲染。对于绝大多数情况来说，<code>Mesh::render</code> 就是最顶层的渲染 API ，将场景、物体这样具有语义的对象与只负责完成渲染的抽象层分隔开。</p>
+<blockquote>
+<p>之所以说“绝大多数情况下”，是因为诸如光源（绘制为六个点）、地面（绘制为若干网格线）等特殊对象都不是由 <code>Mesh</code> 或 <code>LineSet</code> 渲染的，而是调用了更低层级的 API 。这些例外的原因是我实现的 <code>Mesh</code> 和 <code>LineSet</code> 不够灵活，不支持逐顶点指定颜色等操作，无法实现我想要的效果。加之经验尚浅、开发时间有限，最终留下了一些不甚规整的代码。</p>
+</blockquote>
+<h2 id="低层-API">低层 API</h2>
+<p>有顶层自然有下层，上文也提到 <code>GL::Mesh</code> 和 <code>GL::LineSet</code> 都需要管理 VAO 和各类 Buffer ，而 OpenGL 中管理这些对象的过程也需要设置许多状态。如果各处都直接调用 OpenGL API ，那么到处重复设置状态的代码显然对可读性和后续开发都有负面影响。这个问题引出了第一类低层 API ，即负责管理资源的 API 。另一方面，CPU 端的 OpenGL API 是一套 C API 而不是 C++ API ，它大量使用宏来表示类型，不能很好地配合类型检查；由于渲染操作自身的复杂性，一些函数接口的参数列表很长且有些容易混淆，对于 Dandelion 来说是灵活过度而可读性不足的。因此有了第二类低层 API ，即负责简化 OpenGL API 调用的 API 。</p>
+<h3 id="资源管理">资源管理</h3>
+<p>Dandelion 需要管理的 OpenGL 资源有三种：</p>
+<ul>
+<li>Buffer Object ：存储顶点属性或顶点索引的缓冲区，对应 <code>ArrayBuffer</code> 和 <code>ElementArrayBuffer</code> 两个类</li>
+<li>Vertex Array Object ：记录顶点属性格式的对象，对应 <code>VertexArrayObject</code> 这个类</li>
+<li>Material ：在 Shader 中使用的材质</li>
+</ul>
+<p>根据 <code>GL::Mesh</code> 和 <code>GL::LineSet</code> 的设计，每个 <code>Mesh</code> 或 <code>LineSet</code> 是一个最小的渲染单位，诸如 <code>glDrawArrays</code> 或 <code>glDrawElements</code> 这样的 draw call 都是由它们产生的。因此，每个渲染单位持有一个 VAO 及若干 Buffer Object ，<code>Mesh</code> 还有自己的材质。</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/vertex_array_objects_ebo.png" srcset="/img/loading.gif" lazyload alt="VAO, VBO 和 EBO 协同工作的示意图（来自 LearnOpenGL CN）"></p>
+<p>通常来说，资源管理的主要工作是管理资源对象的“生命周期”，也就是创建、转移和销毁的过程。而由于 OpenGL 以状态机的方式工作，Dandelion 还需要额外管理资源的切换过程，在渲染不同的渲染单位时正确地绑定所需的资源。</p>
+<p>在上述的三种资源中，材质只是一组静态的数值属性，并没有独立的生命周期。我只需要正确编写 buffer object 与 VAO 的构造和析构函数，就算是完成了管理二者生命周期的代码。除了包装 <code>glGenBuffers</code> 、<code>glGenVertexArrays</code> 等 API ，更重要的是<strong>禁止对 buffer object 或 VAO 的拷贝构造</strong>。因为这些资源并不存在于 Client (CPU) 端，内存中的 <code>ArrayBuffer</code> 实例只不过持有它的编号 (name) 而已。通过拷贝构造复制一个 <code>ArrayBuffer</code> ，只能复制其编号而不能复制真正的 buffer ，这种浅拷贝在 Dandelion 中毫无意义，只会增加产生 bug 的可能性。相应地，虽然目前还没有移动 buffer object 或 VAO 的需求，但把某个 mesh 转移到另一个物体下也是合理的，所以我还是实现了它们的移动构造函数。</p>
+<p>虽然复制一个 mesh 在逻辑上完全合理，但由于持有了不可拷贝构造的 buffer object 与 VAO 对象，所有的渲染单位也都无法拷贝构造。后续版本可能会重新实现 <code>GL::Mesh</code> 的拷贝构造函数以进行深拷贝（创建新的资源）。但无论是否允许拷贝构造，我始终认为应该禁止拷贝赋值以强制开发者借助引用 (reference) 来操作一个 <code>GL::Mesh</code> ，否则很可能一次不经意间的赋值就会徒劳无功地消耗大量资源。</p>
+<p>Buffer object 或 VAO 能够完成的切换操作包括绑定（解绑）自身和操纵顶点属性两种。由于一个 buffer 的数据格式与用途通常不会改变，我倾向于尽量将 buffer object 的各种信息在构造时固定下来。Dandelion 中的 buffer 都是为了提供顶点属性或索引存在的，因此属性或索引的格式可以认为是 buffer 类型的一部分，体现到类定义上就是模板类 <code>GL::ArrayBuffer&lt;T, size&gt;</code> 。它通过模板参数 <code>T</code> 指定数据类型、<code>size</code> 指定每个顶点对应多少个数据元素。表示 buffer 使用方式的 hint 信息与对应顶点属性的位置则作为类内属性在构造时指定。这样一来，在调用 <code>glVertexAttribPointer</code> 将该 buffer 指定为相应顶点属性的数据源时，所需的参数都已经包含在类内了，于是我便可以将这个调用也封装起来，变成一个无参的函数 <code>GL::ArrayBuffer::specify_vertex_attribute</code> 。</p>
+<p>在上述封装的基础上，绘制过程就不再需要人工记忆并传递大量参数，大致变成了这样：</p>
+<ol>
+<li>调用 VAO 的 <code>bind()</code> 来记录绑定信息和顶点属性数据源</li>
+<li>调用数据源 buffer 的 <code>bind()</code> 和 <code>to_gpu()</code> 方法传输数据，再调用 <code>specify_vertex_attribute()</code> 方法指定它成为顶点属性的数据源</li>
+<li>调用 VAO 的 <code>release()</code> 解绑，至此数据已经准备完毕</li>
+<li>在需要发起 draw call 处，绑定 VAO 并直接调用 <code>glDrawArrays</code> 或 <code>glDrawElements</code> 即可</li>
+</ol>
+<p>上述第 1 到第 3 步发生在 <code>GL::Mesh</code> 的构造过程中，而第 4 步正是在 <code>GL::Mesh::render</code> 里执行的。</p>
+<h3 id="简化调用">简化调用</h3>
+<p>负责管理资源的封装代码其实已经起到了简化 API 调用过程的作用，不过还有一些封装是与资源无关的，它们只是一些工具代码。</p>
+<h4 id="类型转换">类型转换</h4>
+<p>OpenGL API 在格式上是一套 C API ，这意味着它不支持函数重载、不支持模板函数。因此 <code>glVertexAttribPointer</code> 之类的 API 不得不用参数来指定传输的数据是什么类型，而指定类型的参数也只能是一些宏定义，这样的代码很难直接与 C++ 的泛型系统配合起来。好在现代 C++ 提供了比较完善的编译期计算功能，可以很方便地<strong>将类型转换为宏</strong>。我在代码中实现了一个专门转换类型的函数 <code>get_GL_type_enum</code> ：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">DataType</span><span class="token operator">></span>
+<span class="token keyword">constexpr</span> GLenum <span class="token function">get_GL_type_enum</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token keyword">constexpr</span> <span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span>DataType<span class="token punctuation">,</span> <span class="token keyword">char</span><span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> GL_BYTE<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token keyword">constexpr</span> <span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span>DataType<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">char</span><span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> GL_UNSIGNED_BYTE<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token keyword">constexpr</span> <span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span>DataType<span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> GL_INT<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token keyword">constexpr</span> <span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span>DataType<span class="token punctuation">,</span> <span class="token keyword">unsigned</span> <span class="token keyword">int</span><span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> GL_UNSIGNED_INT<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token keyword">constexpr</span> <span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span>DataType<span class="token punctuation">,</span> <span class="token keyword">float</span><span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> GL_FLOAT<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token keyword">constexpr</span> <span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span>DataType<span class="token punctuation">,</span> <span class="token keyword">double</span><span class="token operator">></span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> GL_DOUBLE<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> GL_NONE<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>结合 <code>if constexpr</code> 语法和 <code>is_same_v</code> 模板可以在编译期根据类型返回相应的宏值，于是我就能在 <code>GL::ArrayBuffer::specify_vertex_attribute</code> 中这样传递类型：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">T</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>size_t size<span class="token operator">></span>
+<span class="token keyword">void</span> <span class="token class-name">ArrayBuffer</span><span class="token operator">&lt;</span>T<span class="token punctuation">,</span> size<span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">specify_vertex_attribute</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    GLenum data_type <span class="token operator">=</span> <span class="token generic-function"><span class="token function">get_GL_type_enum</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">></span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">glVertexAttribPointer</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token operator">-></span>layout_location<span class="token punctuation">,</span> size<span class="token punctuation">,</span> data_type<span class="token punctuation">,</span> GL_FALSE<span class="token punctuation">,</span> size <span class="token operator">*</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                          <span class="token punctuation">(</span><span class="token keyword">void</span><span class="token operator">*</span><span class="token punctuation">)</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">glEnableVertexAttribArray</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token operator">-></span>layout_location<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<h4 id="修改-Buffer-数据">修改 Buffer 数据</h4>
+<p>当用户修改了某个 mesh 的顶点等属性时，Dandelion 必须相应修改 buffer 内容再传输到显存才能反映到界面上。因此 <code>GL::ArrayBuffer</code> 和 <code>GL::ElementArrayBuffer</code> 都提供了增加、修改数据的方法。之所以不能删除数据，是因为通过 OpenGL API 传递的数据都是数组，删除的代价太大，不如重建一个。</p>
+<p>既然 buffer 中存储的数据是受限的（类型 <code>T</code> 与属性大小 <code>size</code>），那么更新或增加数据的操作当然也应该检查传入的新数据是否符合这些限制。C++ 的 <a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/parameter_pack">Parameter Pack</a> 机制允许编写参数个数可变的函数，而 <a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/fold">Fold Expressions</a> 机制让我能够方便地检查所有参数的类型是否一致：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span> <span class="token class-name">T</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>size_t size<span class="token operator">></span>
+<span class="token keyword">template</span><span class="token operator">&lt;</span><span class="token keyword">typename</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> Ts<span class="token operator">></span>
+<span class="token keyword">void</span> <span class="token class-name">ArrayBuffer</span><span class="token operator">&lt;</span>T<span class="token punctuation">,</span> size<span class="token operator">></span><span class="token double-colon punctuation">::</span><span class="token function">append</span><span class="token punctuation">(</span>Ts<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> values<span class="token punctuation">)</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token comment">// &amp;&amp; 这样的双目运算符可以配合 ... 解包参数实现“链式”运算：先检查前两个参数的类型是否都为 T，</span>
+    <span class="token comment">// 然后将检查结果与第三个参数的类型检查结果作逻辑与，以此类推将所有检查结果都。</span>
+    <span class="token keyword">static_assert</span><span class="token punctuation">(</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span>is_same_v<span class="token operator">&lt;</span><span class="token keyword">decltype</span><span class="token punctuation">(</span>values<span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token operator">></span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                  <span class="token string">"ArrayBuffer: all values to be appended must have the same type as T"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// sizeof... 运算符可以获取 parameter pack 中的参数个数</span>
+    <span class="token keyword">static_assert</span><span class="token punctuation">(</span><span class="token keyword">sizeof</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">(</span>values<span class="token punctuation">)</span> <span class="token operator">==</span> size<span class="token punctuation">,</span>
+                  <span class="token string">"ArrayBuffer: number of values to be appended must be same as size per vertex"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token operator">-></span>data<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>values<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>不得不说虽然看起来很黑魔法，但理解之后确实方便，堪比 Python 的 <code>all</code> 函数了——更何况这些都是编译期计算，没有任何运行时开销。</p>
+<h2 id="回顾">回顾</h2>
+<p>在一学期结束后再去回顾这部分的设计，最大的败笔是在 <code>GL::Mesh</code> 与 <code>GL::LineSet</code> 中重复写了两遍极其相似的代码。同门师兄弟聊起来的时候，大家提到专用的 LineSet 也是个常见的设计，大概是专业工具中的逻辑更复杂，需要专门优化渲染线条的过程吧。不过 Dandelion 是一个小型的实验框架，既没有那么多的精力处处深入优化，也希望代码尽可能精简以便感兴趣的同学自己分析理解，所以我还是认为最好去掉这部分冗余。接下来的重构过程中，我应该会将 <code>GL::Mesh</code> 与 <code>GL::LineSet</code> 合并为 <code>GL::RenderUnit</code> ，作为产生 draw call 的最小单位加以管理。</p>
+<p>至于 <code>RenderUnit</code> 到底是否应该允许复制，这是一个操作逻辑与性能优化的综合问题。如果我实现了浅拷贝（物体可以共享下层的 buffer object 和 VAO 但不共享名称），就可以引入 OpenGL 实例化绘制的 API ，极大程度地减少渲染大量相同物体时的 draw call 数量，从而让粒子系统成为可能。而如果我实现了深拷贝（创建新的 buffer object 和 VAO），就能创建可分别编辑的实例，为几何编辑（建模）过程中提供不少方便。如果更进一步，浅拷贝与深拷贝都实现后还能实现写时拷贝 (Copy On Write, COW) 机制，<code>Scene</code> / <code>Object</code> 的代码中要拷贝 <code>RenderUnit</code> 就不必专门考虑深浅拷贝了。这些优化工作量相当可观，我目前也还很犹豫是否要动手开始。</p>
+<h2 id="下回分解">下回分解</h2>
+<p>讲到现在为止，我只简单提到 Dandelion 是通过切换模式来完成不同任务（渲染、建模、物理模拟）的，还没有解释切换模式时 UI 层面、场景层面、数据（资源）层面发生了怎样的变化，也没有解释另外的三个模式如何运作。我计划在下一篇文章中聊聊渲染模式以及 Dandelion 离线渲染部分的设计思路，也讲讲如何拓展 Dandelion 的渲染能力。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B/" class="category-chain-item">编程</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
+      
+        <a href="/tags/%E8%AF%BE%E7%A8%8B/" class="print-no-link">#课程</a>
+      
+        <a href="/tags/%E7%BC%96%E7%A8%8B/" class="print-no-link">#编程</a>
+      
+        <a href="/tags/%E6%9C%AC%E7%A7%91%E6%95%99%E8%82%B2/" class="print-no-link">#本科教育</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</div>
+      <div>https://greyishsong.ink/图形学实验框架-Dandelion-始末（三）：OpenGL-API-抽象与实时渲染/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>greyishsong</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年1月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - 非商业性使用">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - 相同方式共享">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现">
+                        <span class="hidden-mobile">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+      <div class="col-lg-7 mx-auto nopadding-x-md">
+        <div class="container custom mx-auto">
+          <div class="social-share" data-sites="qzone,qq,weibo,wechat,douban,facebook,twitter"></div>
+        </div>
+      </div>
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      陕ICP备20002523号
+    </a>
+  </span>
+  
+    
+      <span>
+        <a
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=61010302000579"
+          rel="nofollow noopener"
+          class="beian-police"
+          target="_blank"
+        >
+          
+            <span style="visibility: hidden; width: 0">|</span>
+            <img src="/images/beian.png" srcset="/img/loading.gif" lazyload alt="police-icon"/>
+          
+          <span>陕公网安备 61010302000579号</span>
+        </a>
+      </span>
+    
+  
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script  src="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" ></script>
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<!-- hexo injector body_end start --><link href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script><!-- hexo injector body_end end --></body>
+</html>

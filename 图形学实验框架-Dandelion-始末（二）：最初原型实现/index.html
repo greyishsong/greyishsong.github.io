@@ -1,0 +1,1167 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.svg">
+  <link rel="icon" href="/images/icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="greyishsong">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="当我有了初步的需求分析结果，下一步就可以开始写代码了。虽然当初动手实现之前已经有了一些思考和设计，但后来写出的代码还是有不少问题。这一篇文章回顾最初对代码结构的设计，其中有很多粗糙的地方后来被大幅度重构，但事件循环和交互处理的部分还是大致留存下来了。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="图形学实验框架 Dandelion 始末（二）：最初原型实现">
+<meta property="og:url" content="https://greyishsong.ink/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="greyishsong">
+<meta property="og:description" content="当我有了初步的需求分析结果，下一步就可以开始写代码了。虽然当初动手实现之前已经有了一些思考和设计，但后来写出的代码还是有不少问题。这一篇文章回顾最初对代码结构的设计，其中有很多粗糙的地方后来被大幅度重构，但事件循环和交互处理的部分还是大致留存下来了。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://greyishsong.ink/images/dandelion.png">
+<meta property="article:published_time" content="2023-10-30T15:30:29.000Z">
+<meta property="article:modified_time" content="2023-10-30T15:40:46.280Z">
+<meta property="article:author" content="greyishsong">
+<meta property="article:tag" content="图形学">
+<meta property="article:tag" content="课程">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="本科教育">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://greyishsong.ink/images/dandelion.png">
+  
+  
+  
+  <title>图形学实验框架 Dandelion 始末（二）：最初原型实现 - greyishsong</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"greyishsong.ink","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"a1Kv3OSkTrFKyMVyQy5vOxqf-gzGzoHsz","app_key":"2ioOotea0dkGu0KrNYcWYS1r","server_url":"https://a1kv3osk.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/rss2.xml" title="greyishsong" type="application/rss+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>greyishsong</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/rss2.xml" target="_self">
+                <i class="iconfont icon-rss"></i>
+                <span>RSS</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/dandelion.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="图形学实验框架 Dandelion 始末（二）：最初原型实现"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-10-30 23:30" pubdate>
+          2023年10月30日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          10k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          85 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="编程"
+        id="heading-41282bf95e43c64d579757573a03cdde" role="tab" data-toggle="collapse" href="#collapse-41282bf95e43c64d579757573a03cdde"
+        aria-expanded="true"
+      >
+        编程
+        <span class="list-group-count">(11)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-41282bf95e43c64d579757573a03cdde"
+           role="tabpanel" aria-labelledby="heading-41282bf95e43c64d579757573a03cdde">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/" title="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（三）：构造生成树进行ARP广播</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/" title="SDN实验（二）：动态变更转发路径"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（二）：动态变更转发路径</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/" title="SDN实验（四）：测定链路时延"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（四）：测定链路时延</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/" title="图形学实验框架 Dandelion 始末（一）：需求与设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（一）：需求与设计</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA/" title="电路课程设计-模型构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-模型构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" title="电路课程设计-程序设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-程序设计</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">图形学实验框架 Dandelion 始末（二）：最初原型实现</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>当我有了初步的需求分析结果，下一步就可以开始写代码了。虽然当初动手实现之前已经有了一些思考和设计，但后来写出的代码还是有不少问题。这一篇文章回顾最初对代码结构的设计，其中有很多粗糙的地方后来被大幅度重构，但事件循环和交互处理的部分还是大致留存下来了。</p>
+<span id="more"></span>
+<blockquote>
+<p>上一篇回顾： <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1">图形学实验框架 Dandelion 始末（一）：需求与设计</a></p>
+</blockquote>
+<h2 id="项目配置">项目配置</h2>
+<p>如果动手的第一步是建个文件夹，那么第二步就是创建“项目” (Project) 。一个项目与一些源代码文件的区别主要在于依赖管理和构建管理，而对于 C++ 来说 CMake 已经是构建系统的事实标准了，我就先不尝试其他工具，直接跟随主流用 CMake 来管理项目。</p>
+<h3 id="依赖库整合">依赖库整合</h3>
+<p>提供依赖库的方法有很多，比如包管理器、git submodule ，或者干脆要求使用者去相应项目主页上手动下载都可以。但我做的是个教学框架，配置起来越简单越好。而这几种方法都要专门指定版本，还有可能遭遇某个版本后来被开发者删掉的尴尬。因此我索性将所有的依赖库都放置在项目中，并且一并进入 git 管理。</p>
+<blockquote>
+<p>后来我们发现 Assimp 的代码有些小问题，这种做法反倒还方便了我去手动修复，算是个意外收获了。不过这时候是没有其他想法的，只想尽量让配置简单些。</p>
+</blockquote>
+<p>Dandelion 所依赖的第三方库有这么三种：</p>
+<ul>
+<li>必须编译成库文件再链接的：Assimp / GLFW</li>
+<li>仅头文件 (Header Only) 或者直接随着项目源代码一起编译的：Eigen / GLAD / Dear ImGui / spdlog / stb image / portable file dialog</li>
+<li>同时支持以上两种方式的：fmt</li>
+</ul>
+<p>为了构建简单，我选择以 Header Only 的方式引入 fmt ，因此后两种的配置仅限于写好 <code>target_include_directories</code> 。此时刚刚开始开发，所以我也并未考虑要对 Assimp 和 GLFW 作什么特殊的配置，只简单地用 <code>add_subdirectory</code> 作为子目录加入了项目中。</p>
+<p>在这个过程中遇到的一些小麻烦包括：</p>
+<p>macOS 上构建 GLFW 时需要多加一些依赖，这是因为 macOS 与 Linux 有些差异，某些被叫做 <em>Framework</em> 的库也要引入。</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-cmake" data-language="cmake"><code class="language-cmake"><span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">APPLE</span><span class="token punctuation">)</span>
+    <span class="token keyword">find_package</span><span class="token punctuation">(</span>OpenGL REQUIRED<span class="token punctuation">)</span>
+    <span class="token keyword">target_include_directories</span><span class="token punctuation">(</span><span class="token punctuation">$&#123;</span><span class="token variable">PROJECT_NAME</span><span class="token punctuation">&#125;</span> <span class="token namespace">PRIVATE</span> <span class="token punctuation">$&#123;</span>OPENGL_INCLUDE_DIR<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+    <span class="token keyword">target_link_libraries</span><span class="token punctuation">(</span><span class="token punctuation">$&#123;</span><span class="token variable">PROJECT_NAME</span><span class="token punctuation">&#125;</span>
+        <span class="token string">"-framework Cocoa"</span>
+        <span class="token string">"-framework OpenGL"</span>
+        <span class="token string">"-framework IOKit"</span>
+        <span class="token punctuation">$&#123;</span>OPENGL_gl_LIBRARY<span class="token punctuation">&#125;</span>
+    <span class="token punctuation">)</span>
+<span class="token keyword">endif</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>spdlog 是自带一份 fmt 的 (bundled fmt) ，这时 fmt 是“依赖的依赖”。而因为“格式化字符串”是个很常用的操作，我想把 fmt 作为直接依赖引入，方便在 Dandelion 的代码中调用 fmt 的函数。要让 spdlog <strong>不使用</strong>自己的 fmt ，就需要额外定义一个宏：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-cmake" data-language="cmake"><code class="language-cmake"><span class="token keyword">target_compile_definitions</span><span class="token punctuation">(</span><span class="token punctuation">$&#123;</span><span class="token variable">PROJECT_NAME</span><span class="token punctuation">&#125;</span>
+    <span class="token namespace">PRIVATE</span> SPDLOG_FMT_EXTERNAL
+<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>既然不再需要，我就顺手删掉了 spdlog 自带的 fmt 以减小项目体积。</p>
+<h3 id="构建配置">构建配置</h3>
+<p>我想让项目在以 Debug 配置构建时输出更详细的日志，而以 Release 配置构建时则少输出一些，这可以通过用宏 <code>DEBUG</code> 控制条件编译来实现。相应地，在 CMakeLists 中要指定只有 Debug 配置下才定义这个宏，这里我用了生成表达式 (Generator Expression) 这种比较简洁的写法：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-cmake" data-language="cmake"><code class="language-cmake"><span class="token keyword">target_compile_definitions</span><span class="token punctuation">(</span><span class="token punctuation">$&#123;</span><span class="token variable">PROJECT_NAME</span><span class="token punctuation">&#125;</span>
+    <span class="token namespace">PRIVATE</span> <span class="token punctuation">$&lt;</span><span class="token punctuation">$&lt;</span>CONFIG:Debug<span class="token punctuation">></span>:DEBUG<span class="token punctuation">></span>
+<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>而考虑到我们人手很少，又是从头开发，把警告等级调高以便查错是个合适的选择。我是在 Linux 上开发，此时尚未仔细考虑 Windows / macOS 上的问题，于是直接开了 <code>-Wall -Wextra -Werror</code> 几个选项来强制要求消除所有警告。</p>
+<h2 id="第一步：创建运行环境">第一步：创建运行环境</h2>
+<p>从零开始编写代码时，我比较习惯首先从入口点写起，这样写完一步之后就能得到一个可执行的程序。Dandelion 是一个使用 OpenGL 渲染场景、使用 Dear ImGui 创建图形界面的程序。根据 OpenGL 渲染管线的要求和 Dear ImGui 的 API 约定，它在显示图形之前需要做以下几件事情：</p>
+<ol>
+<li>加载 OpenGL 函数地址</li>
+<li>初始化 OpenGL 上下文，创建窗口并加载图标</li>
+<li>设置好 OpenGL 上下文的基本属性（如开启深度测试等）</li>
+<li>初始化 Dear ImGui 上下文</li>
+<li>加载 GUI 使用的汉字字体</li>
+<li>编译并链接用于渲染场景的 shader</li>
+</ol>
+<p>在程序的整个生命周期中，需要与平台 API 打交道的工作基本上仅限于此。为了便于将这些部分与其他逻辑隔离，我用一个 <code>Platform</code> 类来完成它们。主函数中几乎不包含任何逻辑，只创建一个 <code>Platform</code> 实例并将控制权交给它。</p>
+<p>在渲染与交互的过程中，整个程序始终在执行 <em>事件循环</em> ，这是一个用于处理所有输入输出的<strong>死循环</strong>，直到 GUI 被销毁才退出。在事件循环的每一趟，</p>
+<ul>
+<li>按照 OpenGL 双缓冲渲染模式的要求，要调用 <code>glfwSwapBuffers</code> 交换前后两个缓冲以更新画面</li>
+<li>按照 GLFW 的约定，要调用 <code>glfwPollEvents</code> 来获取设备输入</li>
+<li>按照 Dear ImGui 的约定，要调用处理输入和重绘 GUI 的 API</li>
+</ul>
+<p>这些事务也是与平台 API 交互的，并且和具体的功能性逻辑没有关系，所以也是由 <code>Platform</code> 实例执行。而真正执行功能性逻辑（比如布局、离线渲染、建模等等）的部分应该在每趟循环中被调用，并根据当前的状态来判定要做什么操作， <code>Platform</code> 实例的事件循环则是这些功能性逻辑的入口。这样一来，程序的执行顺序就是 主函数 → <code>Platform</code> 构造函数 → <code>Platform::eventloop</code> → <code>Platform</code> 析构函数 → 返回退出。将整个过程画成活动图的形式是这样的：</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/life-cycle-overview.svg" srcset="/img/loading.gif" lazyload alt="life cycle: overview"></p>
+<p><code>Platform</code> 除了初始化的流程比较长，其余的代码都相当短小。<code>eventloop</code> 实际上只有五六个函数调用，而真正主要的部分才刚刚开始。</p>
+<h2 id="第二步：渲染-GUI">第二步：渲染 GUI</h2>
+<p>Dandelion 的交互策略是将每一类功能集中于一个模式中，根据之前的需求分析，它应该需要布局 (layout) 、建模 (Model) 、渲染 (Render) 、模拟 (Simulate) 四个模式。此时要实现的就是布局模式的基本功能。</p>
+<h3 id="从事件循环走向功能逻辑">从事件循环走向功能逻辑</h3>
+<p>Dandelion 的所有功能都是以三维场景（或者物体）的实时显示为基础的，而在当下它还是个单线程的程序，因此在事件循环中通往功能逻辑的主要入口就是 <strong>渲染全部内容的函数</strong> 。每调用一次这个函数，程序就渲染一帧画面。另外，程序也需要处理在这段时间内到来的输入，因此我也设置了处理所有输入的入口函数。</p>
+<blockquote>
+<p>实际上处理输入的入口函数与渲染画面的入口函数可以是同一个，在这个函数里再分别调用其他的函数就行。这里我把它们拆分开并没有什么特殊的用意，只是习惯使然。</p>
+</blockquote>
+<p>单线程意味着：</p>
+<ul>
+<li>在所有的输入或运算全部被处理完之后，程序才能返回到事件循环中调用 <code>glfwSwapBuffers</code> 渲染下一帧，因此这个程序的帧率是不固定的，任务越重帧率越低。</li>
+<li>各种逻辑处理调用呈树形向下展开，树根就是刚才提到的入口函数。</li>
+</ul>
+<p>在上一篇文章中提到，Dandelion 基本上是按照 MVC 架构设计的，因此我的入口函数放在了 <code>Controller</code> 类当中。这个类的唯一实例负责将输入（例如鼠标光标坐标）解释为要进行的交互操作并相应地修改场景数据，但不直接负责渲染任何东西，只调用具体的渲染函数。总而言之，控制器</p>
+<ul>
+<li>有两个入口函数，分别是处理输入的入口 <code>Controller:process_input</code> 和渲染的入口 <code>Controller::render</code></li>
+<li>还有一大堆处理输入的函数，把屏幕坐标、点击和按键转换成相应的函数调用或者属性修改</li>
+<li>是一个单例的类，不会有第二个实例对象（这了我用了 Meyers' Singleton 的方法将其实现为单例类）</li>
+</ul>
+<p>将上面活动图中 Functions 泳道的部分（下半部分）展开来画是这样的：</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/life-cycle-eventloop.svg" srcset="/img/loading.gif" lazyload alt="life cycle: event loop"></p>
+<h3 id="GUI-与-UI-组件的封装">GUI 与 UI 组件的封装</h3>
+<p>通常来说 GUI 有两种实现思路，分别是保留模式 GUI (Retained Mode GUI, RMGUI) 与立即模式 GUI (Immediate Mode GUI, IMGUI)。</p>
+<p>前者的 API 一般是面向对象风格的：用户需要创建一些 UI 组件实例（例如按钮或者文本框），每个 UI 组件实例就是一个内部维护了若干状态的对象。当用户输入触发了某些条件，程序就修改一些对象属性，从而修改 UI 组件的外观。这样的运行流程中并不体现“帧”的概念：调用者创建了一个组件后它就显示出来，只要在处理输入的函数里修改 UI 组件的状态，不需要专门调用某个函数来“绘制” UI 组件。Qt 就是一种典型的 RMGUI 框架，它的信号-槽机制也是一种非常经典的 RMGUI 实现方案。</p>
+<p>后者的 API 则完全不同，在调用者看来，立即模式 GUI 的 API 都是<strong>无状态</strong>的。调用者需要在每一帧调用 API 来绘制 UI 组件，而不是自己维护一个 UI 对象。例如，每一帧都调用 <code>button</code> 函数就会在屏幕上显示一个按钮，按钮的样式由传入的参数决定，并不存在什么按钮对象。这种 GUI 上手起来非常简单，实现方案往往也更轻量化，Dandelion 使用的 Dear ImGui 就是一种 IMGUI 框架。</p>
+<blockquote>
+<p>乍一听起来，每一帧都调用大量的函数来绘制 UI 组件意味着每一帧都要<strong>重绘</strong>整个 GUI ，从而导致严重的性能下降。实际上 IMGUI 框架内部会维护很多状态，从而尽量避免无意义的重绘，实际性能并不会很差。IMGUI 所谓的“无状态”是对调用者无状态，不是指它的内部实现也无状态。</p>
+<p>因为直接调函数创建 GUI 在代码规模小时更方便，所以不少开发者用 IMGUI 框架搭建一些自用的开发工具，比如游戏地图编辑器或者 tile 编辑器等等。</p>
+</blockquote>
+<p>先简单画一个 UI 界面草图，大概是这样的：</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/ui-sketch.svg" srcset="/img/loading.gif" lazyload alt="UI sketch"></p>
+<p>整个界面上的 UI 组件只有两个，分别是工具栏 (Tool Bar) 和菜单栏 (Menu Bar) 。使用 RMGUI 框架时，肯定要创建两个对象来维护这些组件的状态；但是由 UI 组件维护状态的做法不太符合 IMGUI 框架的思路，Dandelion 这样的小规模软件也不需要这样做。</p>
+<p>所以，虽然我在源代码中创建了 <code>Toolbar</code> 和 <code>Menubar</code> 两个类，但这两个类的主要作用是包装 API 调用而非维护状态数据，这与面向对象设计方法中的对象语义有较大的差别。当我构造了这两个类的实例、调用 <code>Toolbar::render</code> 和 <code>Menubar::render</code> 这两个函数时，我的目的是调用 Dear ImGui 的 API 来绘制所有的按钮、Tab 页等元素，要做的是<strong>根据全局状态进行绘制</strong>而不是<strong>接收输入修改状态</strong>。至于调用了哪些函数、绘制了哪些基本组件，这就是一些查询 Dear ImGui 文档并逐个尝试的工作了，繁琐但没有什么值得一提的东西。</p>
+<p>可惜的是，我在刚刚开始写代码时并没有很好地认清这一点，这导致我把最重要的全局状态——当前所处的<strong>工作模式</strong>放在了 <code>Toolbar</code> 这个类中。这破坏了“不将它设计成对象”的原则，让 <code>Toolbar</code> 的封装风格既不像对象也不像函数，埋下了迫使我日后重构代码的隐患。</p>
+<p>到此为止，Dandelion 的代码中已经有了四个类：</p>
+<ul>
+<li><code>Platform</code> 类封装了平台相关的 API 并负责启动程序前的准备工作</li>
+<li><code>Controller</code> 类负责处理输入并调用渲染（绘制）逻辑，也负责维护一些全局状态，持有 <code>Toolbar</code> 和 <code>Menubar</code> 的实例
+<ul>
+<li><code>Toolbar</code> 负责绘制工具栏，目前也保存着 Dandelion 的工作模式</li>
+<li><code>Menubar</code> 负责绘制菜单栏</li>
+</ul>
+</li>
+</ul>
+<p><code>Controller::render</code> 这个函数首先调用 <code>Controller::process_input</code> 处理输入，然后依次调用 <code>Toolbar::render</code> 和 <code>Menubar::render</code> 来绘制 UI ，最后一步就是调用 <code>Scene::render</code> 来渲染场景了。而 <code>Scene</code> 这个类正是后续保存、处理场景数据的核心。</p>
+<h3 id="渲染一个空场景">渲染一个空场景</h3>
+<p>一个三维场景中至少包括若干<strong>物体</strong> ，而如果考虑渲染模式（离线渲染）的要求，那么场景中还要包括<strong>光源</strong>和<strong>相机</strong>两种对象。Dandelion 是用一个 <code>Scene</code> 对象加若干 <code>Object</code> / <code>Light</code> / <code>Camera</code> 对象存储场景数据的。<code>Scene</code> 对象持有后三种数据对象，而 <code>Controller</code> 对象持有全局唯一的 <code>Scene</code> 对象。</p>
+<blockquote>
+<p>因为以后或许会有创建多个 <code>Scene</code> 实例的需求（以及对滥用单例的担忧），所以我没有将 <code>Scene</code> 这个类也写成单例。</p>
+</blockquote>
+<p>那么根据这样的抽象模型，一个 <code>Scene</code> 对象至少应该能够</p>
+<ul>
+<li>加载模型文件并转换为场景中的物体</li>
+<li>持有物体、光源、相机等数据对象（负责管理它们的内存）</li>
+</ul>
+<p>现在场景中还没有加载任何东西，首先要渲染出背景。Scotty3D 的代码结构中，任何会被显示到屏幕上的对象都有一个用于渲染自身的 <code>render</code> 方法，UI 组件、场景、物体皆然。此时我基本上是摸着 Scotty3D 过河，场景对象方面也在模仿它的设计思路，用 <code>Scene::render</code> 方法来渲染场景。要用经典的渲染管线渲染场景，首先要准备好两个东西：</p>
+<ul>
+<li>顶点数据，由要渲染的对象提供（比如物体的 mesh 、光源的坐标等）</li>
+<li>变换矩阵，除了 Model 矩阵由物体记录以外，View 和 Projection 矩阵都由当前用户的视角决定</li>
+</ul>
+<p>顶点数据已经记录在 <code>Scene</code> 持有的数据对象中了，而视角信息则不然。不过，用户观察场景的视角很适合用一个相机来表示。这个相机具有与渲染器相机类似的属性（位置、观察方向、视角大小、宽高比等等），区别在于观察场景的相机代表了用户的观察视角，所以 GUI 界面上是看不见它的；而渲染器相机是给离线渲染使用的，用户可以直接看到它的位置和朝向。</p>
+<p>为了便于区分，以下用<strong>主相机</strong>指代用户观察场景所用的相机，用<strong>渲染相机</strong>指代软渲染器进行离线渲染时所用的相机。对于只有一个预览窗格的 Dandelion 而言，主相机必定是唯一的，所以主相机参数直接存储在 <code>Controller::main_camera</code> 中。</p>
+<p>由于布局模式下并不需要显示关于渲染的信息，现在暂不考虑光源和相机如何显示，先让 OpenGL 渲染管线渲染一个空场景。这并不难——只要在构造 <code>Scene</code> 对象时直接创建一个主相机并赋予它一组默认参数，再根据相机参数设置 shader 中所用的变换矩阵，就可以显示画面了。虽然场景中没有物体，但最好还是有基本的参照物来标定空间的位置和方向。最常见的参照物是在地平面 (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y=0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>) 处渲染一片方形网格，这也不难实现，只要设置一组固定的顶点坐标和颜色，然后直接调 OpenGL API 绘制 <code>GL_LINES</code> 类型的图元即可。</p>
+<p>于是，一个空场景的渲染流程就是：</p>
+<ol>
+<li>在 <code>Controller::render</code> 函数中，根据 <code>main_camera</code> 的参数计算出 View / Projection 矩阵，并设置 shader 中的 uniform 变量。</li>
+<li>进入 <code>Scene::render</code> 函数，直接调用 <code>Scene::render_ground</code> 渲染地平面网格。</li>
+<li>进入 <code>Scene::render_ground</code> 函数，通过设置 shader uniform 变量关闭着色计算（渲染地平面网格不需要专门着色，整个网格的颜色是一样的）</li>
+<li>如果是第一次渲染，那么将顶点数据（每条网格线的起点和终点）传入显存（向 OpenGL 的 Buffer 复制数据）。</li>
+<li>调用 <code>glDrawElements</code> 绘制图元。</li>
+</ol>
+<p>这时我终于得到了一个能看到图的软件，它大概长这个样子：</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/dandelion-initial.png" srcset="/img/loading.gif" lazyload alt="initial version of Dandelion"></p>
+<blockquote>
+<p>为了突出三个坐标轴，我额外用红、绿、蓝三色画了线，不过操作方法与绘制灰色的地平面网格完全一样。</p>
+<p>这里虽然有了些菜单和按钮，但尚未实现它们背后的逻辑，所以点击之后也都是没反应的。</p>
+</blockquote>
+<p>然而到目前位置，这还是个只能看不能动的界面。为了能够移动视角，我至少要给 <code>Controller</code> 增加一些处理鼠标输入的方法，从而让用户可以使用鼠标操控主相机。</p>
+<h2 id="第三步：交互处理">第三步：交互处理</h2>
+<p>在三维场景中移动视角的方法有很多，我想要用一种比较方便直观的方案：</p>
+<ul>
+<li>拖动鼠标时视角绕着固定点（当前就是原点）旋转</li>
+<li>滚动滚轮时视角沿着观察方向移动，视野相应放大或缩小</li>
+</ul>
+<p>先不考虑其他的输入，目前需要给 <code>Controller</code> 增加处理鼠标拖动和滚轮的函数，并在这两个函数中修改主相机的参数。而 <code>Controller::process_input</code> 负责判断当前接收到的是哪种输入，并调用这两个函数进行处理。</p>
+<p>Dear ImGui 提供了 <code>ImGuiIO::WantCaptureMouse</code> 属性，用于表示当前光标是否位于某个 UI 组件上。当光标不不在任何 UI 组件上时，它就在渲染的场景上。所以在 <code>Controller:process_input</code> 函数中，要在  <code>ImGuiIO::WantCaptureMouse</code> 为 <code>false</code> 时根据具体输入选择要调用的函数：</p>
+<ul>
+<li>当按下左键拖动时，就调用 <code>Controller::on_mouse_dragged</code> 函数旋转视角</li>
+<li>当滚动滚轮时，就调用 <code>Controller::on_wheel_scrolled</code> 函数调整视野</li>
+</ul>
+<p>后者只需修改主相机的坐标，因而乏善可陈；但前者还有个小麻烦——为了让拖动动作更加自然，需要将光标在屏幕上的坐标变化量（二维）映射成空间中的旋转（三维），这需要做一点点数学建模工作。</p>
+<h3 id="通过模拟轨迹球旋转视角">通过模拟轨迹球旋转视角</h3>
+<p>屏幕上鼠标光标的移动都是二维的，比三维空间中的旋转少一个维度。有一些设备可以直接产生三维的旋转，比如轨迹球 (track ball) 就是一种很经典的三维操纵设备（甚至还有一个 emoji 🖲就是表示轨迹球的）。它的结构中包含一个可以向任意方向旋转的小球，只要抓着这个小球转动，屏幕上的视角就按照相同（或者相反）的方向转动。为了实现类似轨迹球的操控方式，我需要自己将鼠标光标的移动模拟成轨迹球的滚动。</p>
+<p>想象一个表面比较粗糙的轨迹球，用一根手指按在上面让它来回滚动，而指尖与轨迹球的相对位置不动。此时，一次旋转过程可以用初始和结束两个时刻指尖的坐标（起点和终点）表示。</p>
+<p>虽然理论上轨迹球的转动方向不受限制，但它毕竟没有悬浮在空中，而是必须和底座相连。所以实际上轨迹球露出的部分只有上半球，也就是球面方程 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup><mo>+</mo><msup><mi>z</mi><mn>2</mn></msup><mo>=</mo><msup><mi>r</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">x^2+y^2+z^2=r^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0085em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span> 中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z&gt;0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> 的部分。那么我只要给出指尖位置的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(x,y)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> 坐标，就能唯一确定相应 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi></mrow><annotation encoding="application/x-tex">z</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span></span></span></span> 坐标。把指尖换成光标，取窗口中心为原点，屏幕平面为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z=0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> 平面，就可以将光标位置 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">p</mi><mi>s</mi></msub><mo>=</mo><mo stretchy="false">(</mo><msub><mi>x</mi><mi>s</mi></msub><mo separator="true">,</mo><msub><mi>y</mi><mi>s</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathbf{p}_s=(x_s,y_s)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> 映射到虚拟的轨迹球位置 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">p</mi><mi>t</mi></msub><mo>=</mo><mo stretchy="false">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>y</mi><mi>t</mi></msub><mo separator="true">,</mo><msub><mi>z</mi><mi>t</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathbf{p}_t=(x_t, y_t, z_t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.044em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> ；而有了轨迹球上旋转的起点和终点 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">p</mi><mrow><mi>t</mi><mo separator="true">,</mo><mn>1</mn></mrow></msub><mo separator="true">,</mo><msub><mi mathvariant="bold">p</mi><mrow><mi>t</mi><mo separator="true">,</mo><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\mathbf{p}_{t,1}, \mathbf{p}_{t,2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7305em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mpunct mtight">,</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathbf">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mpunct mtight">,</span><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span> ，我就可以求出旋转变换了。</p>
+<p>但这个方案还不能完全解决问题。窗口是矩形的，矩形的内切圆部分可以直接求出一个 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi></mrow><annotation encoding="application/x-tex">z</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span></span></span></span> 坐标，按照</p>
+<p class="katex-block "><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>z</mi><mo>=</mo><msqrt><mrow><msup><mi>r</mi><mn>2</mn></msup><mo>−</mo><msup><mi>x</mi><mn>2</mn></msup><mo>−</mo><msup><mi>y</mi><mn>2</mn></msup></mrow></msqrt></mrow><annotation encoding="application/x-tex">z=\sqrt{r^2-x^2-y^2}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.24em;vertical-align:-0.2333em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0067em;"><span class="svg-align" style="top:-3.2em;"><span class="pstrut" style="height:3.2em;"></span><span class="mord" style="padding-left:1em;"><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-2.9667em;"><span class="pstrut" style="height:3.2em;"></span><span class="hide-tail" style="min-width:1.02em;height:1.28em;"><svg xmlns="http://www.w3.org/2000/svg" width='400em' height='1.28em' viewBox='0 0 400000 1296' preserveAspectRatio='xMinYMin slice'><path d='M263,681c0.7,0,18,39.7,52,119
+c34,79.3,68.167,158.7,102.5,238c34.3,79.3,51.8,119.3,52.5,120
+c340,-704.7,510.7,-1060.3,512,-1067
+l0 -0
+c4.7,-7.3,11,-11,19,-11
+H40000v40H1012.3
+s-271.3,567,-271.3,567c-38.7,80.7,-84,175,-136,283c-52,108,-89.167,185.3,-111.5,232
+c-22.3,46.7,-33.8,70.3,-34.5,71c-4.7,4.7,-12.3,7,-23,7s-12,-1,-12,-1
+s-109,-253,-109,-253c-72.7,-168,-109.3,-252,-110,-252c-10.7,8,-22,16.7,-34,26
+c-22,17.3,-33.3,26,-34,26s-26,-26,-26,-26s76,-59,76,-59s76,-60,76,-60z
+M1001 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2333em;"><span></span></span></span></span></span></span></span></span></span></p>
+<p>计算即可，而内切圆以外的部分则不能直接对应到半球面上，光标移动到这里时就无法求出轨迹球坐标了。一种比较好的解决方案是换一种曲面：只取球面的一部分，在边界处与另一个可以无限外延的曲面相接，并保证边界处的切平面相同。OpenGL Wiki 上有一个条目 <a target="_blank" rel="noopener" href="https://www.khronos.org/opengl/wiki/Object_Mouse_Trackball">Object Mouse Trackball</a> 选择用旋转双曲面来延展球面，效果是这样的：（图片来自 OpenGL Wiki ）</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/trackball-composite.png" srcset="/img/loading.gif" lazyload alt="composition surface for trackball simulation"></p>
+<p>取 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup><mo>=</mo><msup><mi>r</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">x^2+y^2=r^2/2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0085em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord">/2</span></span></span></span> （上图中红色曲线）为边界，边界以内用球面、以外用旋转双曲面，得到的分段曲面方程是：</p>
+<p class="katex-block "><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>z</mi><mo>=</mo><mrow><mo fence="true">{</mo><mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><msqrt><mrow><msup><mi>r</mi><mn>2</mn></msup><mo>−</mo><msup><mi>x</mi><mn>2</mn></msup><mo>−</mo><msup><mi>y</mi><mn>2</mn></msup></mrow></msqrt></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup><mo>&lt;</mo><mfrac><msup><mi>r</mi><mn>2</mn></msup><mn>2</mn></mfrac></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mfrac><mrow><msup><mi>r</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><mn>2</mn></mrow><msqrt><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup></mrow></msqrt></mfrac></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>otherwise</mtext></mstyle></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">z=
+\begin{cases}
+\sqrt{r^2-x^2-y^2} &amp; x^2+y^2&lt;\frac{r^2}{2} \\
+\frac{r^2/2}{\sqrt{x^2+y^2}} &amp; \text{otherwise}
+\end{cases}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-2.5em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎩</span></span></span><span style="top:-2.492em;"><span class="pstrut" style="height:3.15em;"></span><span style="height:0.016em;width:0.8889em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.8889em' height='0.016em' style='width:0.8889em' viewBox='0 0 888.89 16' preserveAspectRatio='xMinYMin'><path d='M384 0 H504 V16 H384z M384 0 H504 V16 H384z'/></svg></span></span><span style="top:-3.15em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎨</span></span></span><span style="top:-4.292em;"><span class="pstrut" style="height:3.15em;"></span><span style="height:0.016em;width:0.8889em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.8889em' height='0.016em' style='width:0.8889em' viewBox='0 0 888.89 16' preserveAspectRatio='xMinYMin'><path d='M384 0 H504 V16 H384z M384 0 H504 V16 H384z'/></svg></span></span><span style="top:-4.3em;"><span class="pstrut" style="height:3.15em;"></span><span class="delimsizinginner delim-size4"><span>⎧</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.9442em;"><span style="top:-4.0352em;"><span class="pstrut" style="height:3.1089em;"></span><span class="mord"><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9578em;"><span class="svg-align" style="top:-3.2em;"><span class="pstrut" style="height:3.2em;"></span><span class="mord" style="padding-left:1em;"><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-2.9178em;"><span class="pstrut" style="height:3.2em;"></span><span class="hide-tail" style="min-width:1.02em;height:1.28em;"><svg xmlns="http://www.w3.org/2000/svg" width='400em' height='1.28em' viewBox='0 0 400000 1296' preserveAspectRatio='xMinYMin slice'><path d='M263,681c0.7,0,18,39.7,52,119
+c34,79.3,68.167,158.7,102.5,238c34.3,79.3,51.8,119.3,52.5,120
+c340,-704.7,510.7,-1060.3,512,-1067
+l0 -0
+c4.7,-7.3,11,-11,19,-11
+H40000v40H1012.3
+s-271.3,567,-271.3,567c-38.7,80.7,-84,175,-136,283c-52,108,-89.167,185.3,-111.5,232
+c-22.3,46.7,-33.8,70.3,-34.5,71c-4.7,4.7,-12.3,7,-23,7s-12,-1,-12,-1
+s-109,-253,-109,-253c-72.7,-168,-109.3,-252,-110,-252c-10.7,8,-22,16.7,-34,26
+c-22,17.3,-33.3,26,-34,26s-26,-26,-26,-26s76,-59,76,-59s76,-60,76,-60z
+M1001 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2822em;"><span></span></span></span></span></span></span></span><span style="top:-2.4943em;"><span class="pstrut" style="height:3.1089em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1089em;"><span style="top:-2.446em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord sqrt mtight"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0628em;"><span class="svg-align" style="top:-3.4286em;"><span class="pstrut" style="height:3.4286em;"></span><span class="mord mtight" style="padding-left:1.19em;"><span class="mord mtight"><span class="mord mathnormal mtight">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7463em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mbin mtight">+</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7463em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-3.0348em;"><span class="pstrut" style="height:3.4286em;"></span><span class="hide-tail mtight" style="min-width:0.853em;height:1.5429em;"><svg xmlns="http://www.w3.org/2000/svg" width='400em' height='1.5429em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3937em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord mtight">/2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8296em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4442em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.9442em;"><span style="top:-4.0352em;"><span class="pstrut" style="height:3.1089em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0179em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-2.4943em;"><span class="pstrut" style="height:3.1089em;"></span><span class="mord"><span class="mord text"><span class="mord">otherwise</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4442em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>有了统一的坐标映射，我就可以将窗口上任意一个屏幕坐标映射到轨迹球曲面坐标。用这个坐标减去原点得到一个向量，再归一化得到方向向量。为了计算拖动过程对应的旋转变换，可以记录上一次进入 <code>on_mouse_dragged</code> 时的屏幕坐标，再分别用上次的和当前的屏幕坐标计算方向向量，最后构造四元数。</p>
+<blockquote>
+<p>上面说的屏幕坐标都是以窗口中心点为原点，实际上通过 Dear ImGui API 获取到的坐标是以窗口左上角为原点的，需要先作一次平移变换。</p>
+<p>构造旋转变换的原理是：从方向向量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">d</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\mathbf{d}_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 旋转到方向向量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">d</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\mathbf{d}_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 时，两个方向向量作一次叉乘就可以得到旋转轴、而借助点积可以得到旋转角，进而用轴-角表示法构造四元数。不过 Eigen 已经提供了 <code>Quaternionf::FromTwoVectors</code> 这个函数，直接传入两个单位向量就能很方便地构造出四元数了。</p>
+</blockquote>
+<h2 id="最后一步：载入模型">最后一步：载入模型</h2>
+<p>有 Assimp 的支持，加载模型文件还是很方便的，在依次调用 portable file dialog API（获取要打开的文件名）、Assimp Importer API（从文件中加载数据并解析为 <code>aiScene</code> 对象）后，所有的顶点和面片数据就可以直接从 <code>aiScene</code> 对象中读取。</p>
+<p>不过，不同的模型文件格式可能具有不同的层次结构。最简单的格式只允许存储一个 mesh ，而复杂的格式则允许存储 mesh、物体、组等层次信息，甚至允许物体和组多层嵌套。我的观点是：作为一个实验框架，Dandelion 应该将同一个文件中加载的 mesh 放在一起，但没有必要支持多层嵌套的物体和组。因此这时我只给 Dandelion 设计了两种数据类：</p>
+<ul>
+<li><code>Mesh</code> 类存储顶点坐标、法线、面片和材质，一个 <code>Mesh</code> 对象只存储一个 mesh</li>
+<li><code>Object</code> 类存储若干个 mesh 以及这个物体的中心坐标、旋转与伸缩参数，可以生成 Model 矩阵</li>
+</ul>
+<p>因此，当程序载入文件时，会生成一个用文件名命名的 <code>Object</code> 和若干用 mesh 名称命名的 <code>Mesh</code> 对象，除此以外的所有层次结构都会被抹去。由于生成 Model 矩阵所需的中心、旋转和伸缩参数都存储在 <code>Object</code> 对象中，所有属于该 <code>Object </code> 的 <code>Mesh</code> 都共享同一个 Model 矩阵，导致用户不能拆开由多个 mesh 组成的物体。</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/load-object.png" srcset="/img/loading.gif" lazyload alt="load an object consisting of multiple meshes"></p>
+<p>前文说到过 Dear ImGui 的 API 是无状态的，例如绘制一个输入浮点数的拖动条要调用 <code>SliderFloat</code> 函数：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token class-name">ImGui</span><span class="token double-colon punctuation">::</span><span class="token function">SliderFloat</span><span class="token punctuation">(</span><span class="token string">"x"</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span><span class="token punctuation">(</span>selected_object<span class="token operator">-></span>center<span class="token punctuation">.</span><span class="token function">x</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">100.0f</span><span class="token punctuation">,</span> <span class="token number">100.0f</span><span class="token punctuation">,</span> <span class="token string">"%.2f"</span><span class="token punctuation">,</span> ImGuiSliderFlags_AlwaysClamp<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div></figure>
+<p>它的几个参数含义分别是：</p>
+<ol>
+<li>拖动条的标签，即旁边的说明文字</li>
+<li>影响的变量，用鼠标拖动时会修改这个变量的值，因此是传地址的</li>
+<li>拖动条的数值范围（最小值和最大值）</li>
+<li>显示的数字格式</li>
+<li>一些控制样式的 flag</li>
+</ol>
+<p>而为了让这个拖动条能修改场景中物体的参数，我就需要将物体相应参数的地址 <code>selected_object-&gt;center.x()</code> 传入其中。渲染工具栏的函数是 <code>Toolbar::render</code> ，这个函数调用 <code>Toolbar::layout_mode</code> 渲染布局模式下的组件，像 <code>SliderFloat</code> 这样的函数就是在这里被调用的。那么为了在调用函数绘制组件时能够访问场景数据，我就要将场景本身以引用的方式传递进来，所以一次典型的交互过程是这样的：</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/interaction-with-scene.svg" srcset="/img/loading.gif" lazyload alt="interaction between the tool bar and the scene"></p>
+<p>这里再次强调：之所以要让 <code>Controller</code> 将场景的引用传递给 <code>Toolbar::render</code> 而非将引用作为状态保存在 <code>Toolbar</code> 里，是因为视图层的 <code>Toolbar</code> 主要代表一系列函数调用而非对象实体，通过接收参数来访问模型层的 <code>Scene</code> 对象更符合之前的设计思路。</p>
+<h2 id="下回分解">下回分解</h2>
+<p>到此为止，我就获得了一个可以加载模型，并能将物体放置到场景中任意位置、能调整物体姿态朝向的小工具，也就满足了布局模式的最低要求。</p>
+<p>这篇文章主要回顾了我从零开始写代码时的封装思路，基本上是按照我当初创建和实现类的顺序来写。然而在涉及模型加载和场景数据的部分，文中并未解释载入的数据是如何存储在 <code>Mesh</code> 对象中、<code>Mesh</code> 对象又是如何被渲染到屏幕上的。</p>
+<p>当然了，我大可以说“这最终都是一些 OpenGL API 调用”，然后把这部分一笔带过。但 OpenGL API 既多又杂，并且在不同的任务需求下有不同的使用思路，不象 Assimp 这种工具库有一种“最佳实践风格”。所以下一篇我会对自己初步封装 OpenGL API 的思路和过程，并从事后角度重新考虑一下当时的想法是否合理。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B/" class="category-chain-item">编程</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
+      
+        <a href="/tags/%E8%AF%BE%E7%A8%8B/" class="print-no-link">#课程</a>
+      
+        <a href="/tags/%E7%BC%96%E7%A8%8B/" class="print-no-link">#编程</a>
+      
+        <a href="/tags/%E6%9C%AC%E7%A7%91%E6%95%99%E8%82%B2/" class="print-no-link">#本科教育</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>图形学实验框架 Dandelion 始末（二）：最初原型实现</div>
+      <div>https://greyishsong.ink/图形学实验框架-Dandelion-始末（二）：最初原型实现/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>greyishsong</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年10月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - 非商业性使用">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - 相同方式共享">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/" title="图形学实验框架 Dandelion 始末（一）：需求与设计">
+                        <span class="hidden-mobile">图形学实验框架 Dandelion 始末（一）：需求与设计</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+      <div class="col-lg-7 mx-auto nopadding-x-md">
+        <div class="container custom mx-auto">
+          <div class="social-share" data-sites="qzone,qq,weibo,wechat,douban,facebook,twitter"></div>
+        </div>
+      </div>
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      陕ICP备20002523号
+    </a>
+  </span>
+  
+    
+      <span>
+        <a
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=61010302000579"
+          rel="nofollow noopener"
+          class="beian-police"
+          target="_blank"
+        >
+          
+            <span style="visibility: hidden; width: 0">|</span>
+            <img src="/images/beian.png" srcset="/img/loading.gif" lazyload alt="police-icon"/>
+          
+          <span>陕公网安备 61010302000579号</span>
+        </a>
+      </span>
+    
+  
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script  src="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" ></script>
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<!-- hexo injector body_end start --><link href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script><!-- hexo injector body_end end --></body>
+</html>

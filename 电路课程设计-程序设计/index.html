@@ -1,0 +1,1103 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.svg">
+  <link rel="icon" href="/images/icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="greyishsong">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这是接续上一篇电路课程设计-模型构建所作的第二部分记录，主要内容是基于之前的的数学模型和算法设计，考虑合适的抽象层次和程序结构，并尝试为各模块间设计合理的数据通信方式。 总体上将电路分析的程序分为数据、元件和电路三个抽象层次，并对元件和电路加以封装。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="电路课程设计-程序设计">
+<meta property="og:url" content="https://greyishsong.ink/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="greyishsong">
+<meta property="og:description" content="这是接续上一篇电路课程设计-模型构建所作的第二部分记录，主要内容是基于之前的的数学模型和算法设计，考虑合适的抽象层次和程序结构，并尝试为各模块间设计合理的数据通信方式。 总体上将电路分析的程序分为数据、元件和电路三个抽象层次，并对元件和电路加以封装。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://greyishsong.ink/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/abstract-levels.png">
+<meta property="og:image" content="https://greyishsong.ink/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/classes.png">
+<meta property="article:published_time" content="2020-01-22T08:54:46.000Z">
+<meta property="article:modified_time" content="2022-09-06T08:55:35.510Z">
+<meta property="article:author" content="greyishsong">
+<meta property="article:tag" content="课程">
+<meta property="article:tag" content="数值计算">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://greyishsong.ink/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/abstract-levels.png">
+  
+  
+  
+  <title>电路课程设计-程序设计 - greyishsong</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"greyishsong.ink","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"a1Kv3OSkTrFKyMVyQy5vOxqf-gzGzoHsz","app_key":"2ioOotea0dkGu0KrNYcWYS1r","server_url":"https://a1kv3osk.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/rss2.xml" title="greyishsong" type="application/rss+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>greyishsong</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/rss2.xml" target="_self">
+                <i class="iconfont icon-rss"></i>
+                <span>RSS</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/banner.gif') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="电路课程设计-程序设计"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-01-22 16:54" pubdate>
+          2020年1月22日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          41 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="编程"
+        id="heading-41282bf95e43c64d579757573a03cdde" role="tab" data-toggle="collapse" href="#collapse-41282bf95e43c64d579757573a03cdde"
+        aria-expanded="true"
+      >
+        编程
+        <span class="list-group-count">(11)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-41282bf95e43c64d579757573a03cdde"
+           role="tabpanel" aria-labelledby="heading-41282bf95e43c64d579757573a03cdde">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/" title="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（三）：构造生成树进行ARP广播</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/" title="SDN实验（二）：动态变更转发路径"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（二）：动态变更转发路径</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/" title="SDN实验（四）：测定链路时延"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（四）：测定链路时延</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/" title="图形学实验框架 Dandelion 始末（一）：需求与设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（一）：需求与设计</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA/" title="电路课程设计-模型构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-模型构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" title="电路课程设计-程序设计"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">电路课程设计-程序设计</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">电路课程设计-程序设计</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>这是接续上一篇<a href="/2020/01/19/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA/">电路课程设计-模型构建</a>所作的第二部分记录，主要内容是基于之前的的数学模型和算法设计，考虑合适的抽象层次和程序结构，并尝试为各模块间设计合理的数据通信方式。</p>
+<p>总体上将电路分析的程序分为数据、元件和电路三个抽象层次，并对元件和电路加以封装。</p>
+<span id="more"></span>
+<h2 id="语言和工具的选择">语言和工具的选择</h2>
+<hr>
+<h3 id="语言和开发环境">语言和开发环境</h3>
+<p>我选择自己相对熟悉的C++语言，按ISO C++11 标准编写（主要是因为C++11对 STL 容器的性能和易用性作了较大的优化，并添加了对 auto 等关键字的支持）。</p>
+<p>编译器选择Windows下的<code>mingw-w64</code>，版本为<code>g++ 8.1.0</code>。</p>
+<h3 id="外部工具和库">外部工具和库</h3>
+<p>因为这是一个课程设计的demo，没有打造成实用工具的计划，加之自己有熟悉算法的意愿，我选择不用第三方库（实际上boost的线性代数库提供了更完善的工具），只用标准库编写。程序中顺便也用了一些STL中的容器。</p>
+<p><br /><br /></p>
+<h2 id="抽象层次的设计">抽象层次的设计</h2>
+<hr>
+<h3 id="概述">概述</h3>
+<p>对于一个线性（动态）电路，所需要存储的信息主要有三类：</p>
+<ol>
+<li>拓扑信息：结点之间由元件建立的连接关系</li>
+<li>特征信息：元件的类型及属性</li>
+<li>状态信息：电路的物理状态，即电压和电流</li>
+</ol>
+<p>而电路需要实现的基本操作应当包括：</p>
+<ol>
+<li>数据功能：如元件的增删、修改</li>
+<li>分析功能：如求结点电压、等效电路</li>
+</ol>
+<p>一般将信息视为数据，而用函数实现操作。对程序设计三个层次：</p>
+<img src="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/abstract-levels.png" srcset="/img/loading.gif" lazyload class="">
+<p>即：</p>
+<ol>
+<li>电路层存储拓扑信息，实现数据功能和分析功能</li>
+<li>元件层不存储信息，只定义元件和实现访问数据层的方法</li>
+<li>数据层存储特征信息和状态信息</li>
+</ol>
+<p>以下按照自底向上的顺序介绍各层的设计。</p>
+<h3 id="数据层">数据层</h3>
+<p>整个分析过程中，所有的元件都通过动态内存管理，通过指针访问，数据层即所有实例化的元件对象。访问这些对象的唯一方法是通过指针，任何不通过动态内存申请而试图实例化一个元件对象的行为都是不应该发生的。</p>
+<p>这样设计的原因是：根据数学模型和算法设计的要求，在电路层和元件层的多处位置有可能要用到同一个元件的信息。例如电路层中，进行分析时要访问元件的特征信息，而动态元件维护的相关元件列表需要访问元件的状态信息。在这样的情况下，同时在各处都保存这个元件的副本不仅会造成很大的空间浪费，还会带来“一处更新，四处修改”的麻烦，很有可能出现一些副本没有及时根据计算结果进行更新的问题，从而造成计算结果错误。</p>
+<p>所以，在上层结构中保存元件对象的副本不如保存指向元件对象的指针。只要表示同一个元件的多个指针指向同一个对象，无论何处由计算发生更新，都可以即时反馈，不存在协同更新的问题。而将元件对象用<code>new</code>运算符动态申请实例化，每一个实际的元件只实例化一个对象。</p>
+<h3 id="原件层">原件层</h3>
+<p>元件层实际上就是对元件的类定义，用派生关系定义了抽象的元件基类和具体的各种元件类型，并且提供了访问该类型对象中各种数据的方法。</p>
+<p>元件层是用于实现封装的，即一个元件对象的任何数据成员都不应当对外暴露，只能通过提供的接口进行访问或修改。对于一些具体的元件类型，由于元件的性质不同，这些接口可能具有不同的行为。</p>
+<h3 id="电路层">电路层</h3>
+<p>电路层的关键在于电路的拓扑信息，即电路的图。这一层直接存储电路的图，并且用在图上增删点、边的方式实现元件的增删。这一层的分析功能则通过调用元件接口来获取分析所需的数据。</p>
+<p><br /><br /></p>
+<h2 id="继承关系与多态实现">继承关系与多态实现</h2>
+<hr>
+<h3 id="元件类的设计——继承关系">元件类的设计——继承关系</h3>
+<p>根据对抽象元件建立的数学模型，可以确定一个抽象的元件基类(abstractbase class)<code>Element</code>应当具有的属性是两端结点和属性参数。由于不同元件的属性参数也不同，所以属性参数在派生类中定义，但是一个元件应该能够访问其属性参数和元件类型，所以应当具有对应的方法，只是这些方法被定义为纯虚函数，所以<code>Element</code>类不能被实例化。</p>
+<p>另外根据动态电路暂态分析的需要，为<code>Element</code>类增加了电压和电流两个属性，这是和数学模型不相同的地方。但是这两个属性是不需要外部输入的，来源于电路计算过程中的结果。</p>
+<p>在<code>Element</code>类的基础上，根据各种元件类型的特性，设计各类的继承关系表示如下：（用蓝色表示抽象类，橙色表示具体类）</p>
+<img src="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/classes.png" srcset="/img/loading.gif" lazyload class="">
+<p>各个层级的类所提供的接口分别为：</p>
+<ul>
+<li>所有元件的基类：
+<ul>
+<li><code>Element</code>类：访问元件两端结点的编号、元件的电流、电压、参数值、类型，修改元件参数值，更新电流、电压</li>
+</ul>
+</li>
+<li>次级抽象类：
+<ul>
+<li><code>ControlledSource</code>类：访问受控源的控制量所在的结点</li>
+<li><code>Dynamic</code>类：访问动态元件当前的状态，向相关元件列表中加入元件，计算下一时刻的状态，设定初始状态</li>
+</ul>
+</li>
+<li>具体原件：多数具体元件不增加接口，只实现抽象基类中定义的接口，仅有如下例外：
+<ul>
+<li><code>CurrentSource</code>和<code>VoltageSource</code>类：增加开关电源的接口，电源关闭后即置零</li>
+<li><code>Capacitor</code>类：设定标记结点（即所选定的单电容结点）</li>
+</ul>
+</li>
+</ul>
+<p>其中，<code>Resistor</code>,<code>CurrentSource</code>,<code>VoltageSource</code>三个类型之所以直接继承自<code>Element</code>类，是因为这三种元件都不需要定义额外的接口，所以不再为它们设计次一级的基类了。</p>
+<h3 id="电路的实际存储——多态实现">电路的实际存储——多态实现</h3>
+<p>从数据结构的角度看，电路应当以图的形式存储，而为了增删元件方便，选择邻接表比邻接矩阵更好。所以，用一个邻接表存储整个电路。</p>
+<p>从实际操作的角度看，邻接表中所存储的数据类型应当一致，但是电路中元件的类型是很多的，并且还可能随着功能的开发和扩展而增加。</p>
+<p>所以，这个邻接表中不能存储元件的数据，而应当存储指向元件对象的指针；并且这个指针的类型应当是所有元件的基类（<code>Element*</code>），这样就可以用同一类型的变量代表（指向）不同类型的元件。这也是设计数据层与电路层相分离的重要原因。</p>
+<p>在电路层的分析功能实现中，需要获取一个具体的元件数据，这分为两种情况：</p>
+<ol>
+<li>具体元件中没有新增的接口或不需要用到这些接口</li>
+<li>具体元件中新增了接口且需要使用这些接口</li>
+</ol>
+<p>对于前者，只需要直接用基类指针访问方法，运行时自然会根据虚函数表调用派生类的方法；对于后者，首先通过基类的<code>getType</code>接口获取元件的类型，再进行动态类型转换，转换到派生类的指针再调用派生类的方法。（按照C++11之后标准的推荐，这个转换应当使用<code>dynamic_cast</code>而不是C风格的强制类型转换，以提供编译期的安全检查）</p>
+<p><br /><br /></p>
+<h2 id="程序控制流程">程序控制流程</h2>
+<hr>
+<h3 id="整体控制">整体控制</h3>
+<p>程序整体的控制流程是重复&quot;接受任务-执行-返回&quot;的过程，在 main.cpp 中表现为消息循环中对电路层功能的调用，演示如下：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-flow" data-language="flow"><code class="language-flow">st<span class="token operator">=></span>start<span class="token operator">:</span> 开始
+input<span class="token operator">=></span>inputoutput<span class="token operator">:</span> 获取指令
+cond1<span class="token operator">=></span>condition<span class="token operator">:</span> 是否为类型<span class="token number">1</span><span class="token operator">?</span>
+sub1<span class="token operator">=></span>subroutine<span class="token operator">:</span> 读入元件
+cond2<span class="token operator">=></span>condition<span class="token operator">:</span> 是否为类型<span class="token number">2</span><span class="token operator">?</span>
+sub2<span class="token operator">=></span>subroutine<span class="token operator">:</span> 删改元件
+cond3<span class="token operator">=></span>condition<span class="token operator">:</span> 是否为类型<span class="token number">3</span><span class="token operator">?</span>
+sub3<span class="token operator">=></span>subroutine<span class="token operator">:</span> 稳态分析
+cond4<span class="token operator">=></span>condition<span class="token operator">:</span> 是否为类型<span class="token number">4</span><span class="token operator">?</span>
+sub4<span class="token operator">=></span>subroutine<span class="token operator">:</span> 暂态分析
+cond5<span class="token operator">=></span>condition<span class="token operator">:</span> 是否为类型<span class="token number">5</span><span class="token operator">?</span>
+sub5<span class="token operator">=></span>subroutine<span class="token operator">:</span> 终止
+output<span class="token operator">=></span>inputoutput<span class="token operator">:</span> 输出提示<span class="token operator">/</span>结果
+ed<span class="token operator">=></span>end<span class="token operator">:</span> 结束
+
+st<span class="token operator">-</span><span class="token operator">></span>input<span class="token operator">-</span><span class="token operator">></span>cond1
+<span class="token function">cond1</span><span class="token punctuation">(</span>yes<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>sub1
+<span class="token function">cond1</span><span class="token punctuation">(</span>no<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>cond2
+<span class="token function">cond2</span><span class="token punctuation">(</span>yes<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>sub2
+<span class="token function">cond2</span><span class="token punctuation">(</span>no<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>cond3
+<span class="token function">cond3</span><span class="token punctuation">(</span>yes<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>sub3
+<span class="token function">cond3</span><span class="token punctuation">(</span>no<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>cond4
+<span class="token function">cond4</span><span class="token punctuation">(</span>yes<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>sub4
+<span class="token function">cond4</span><span class="token punctuation">(</span>no<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>cond5
+<span class="token function">cond5</span><span class="token punctuation">(</span>yes<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>sub5
+<span class="token function">cond5</span><span class="token punctuation">(</span>no<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>output
+sub1<span class="token operator">-</span><span class="token operator">></span>output
+sub2<span class="token operator">-</span><span class="token operator">></span>output
+sub3<span class="token operator">-</span><span class="token operator">></span>output
+sub4<span class="token operator">-</span><span class="token operator">></span>output
+sub5<span class="token operator">-</span><span class="token operator">></span>ed
+output<span class="token operator">-</span><span class="token operator">></span>input<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<h3 id="稳态分析的流程">稳态分析的流程</h3>
+<p>稳态分析的基本工作就是遍历电路、填写系数矩阵、求解方程组</p>
+<p>求结点电压的流程展示如下：（如求戴维宁等效电路，在结点电压法求出端口电压的基础上，只需向指定一端口加一个 1A 的电流源，再将整个电路中其他的电源都关闭之后求端口电压，就可以求出等效电阻）</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-flow" data-language="flow"><code class="language-flow">st<span class="token operator">=></span>start<span class="token operator">:</span> 开始
+traverse<span class="token operator">=></span>operation<span class="token operator">:</span> 遍历邻接表
+vis<span class="token operator">=></span>operation<span class="token operator">:</span> 访问元件
+check<span class="token operator">=></span>operation<span class="token operator">:</span> 判定类型
+fill<span class="token operator">=></span>operation<span class="token operator">:</span> 填入系数
+cond<span class="token operator">=></span>condition<span class="token operator">:</span> 遍历结束<span class="token operator">?</span>
+solve<span class="token operator">=></span>subroutine<span class="token operator">:</span> 调用Equation类解方程组
+ed<span class="token operator">=></span>end<span class="token operator">:</span> 结束
+
+st<span class="token operator">-</span><span class="token operator">></span>traverse<span class="token operator">-</span><span class="token operator">></span>vis<span class="token operator">-</span><span class="token operator">></span>check<span class="token operator">-</span><span class="token operator">></span>fill<span class="token operator">-</span><span class="token operator">></span>cond
+<span class="token function">cond</span><span class="token punctuation">(</span>no<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>traverse
+<span class="token function">cond</span><span class="token punctuation">(</span>yes<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>solve<span class="token operator">-</span><span class="token operator">></span>ed<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<h3 id="暂态分析的流程">暂态分析的流程</h3>
+<p>暂态分析的实际上是一个不断迭代作稳态分析的过程，只是每次的数值不同。暂态分析的流程展示如下：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-flow" data-language="flow"><code class="language-flow">st<span class="token operator">=></span>start<span class="token operator">:</span> 开始
+find<span class="token operator">=></span>operation<span class="token operator">:</span> 确定单电容结点和单电感回路
+<span class="token keyword">try</span><span class="token operator">=></span>operation<span class="token operator">:</span> 试计算，调整电容和电感的极性
+set<span class="token operator">=></span>operation<span class="token operator">:</span> 设定迭代时间间隔
+solve<span class="token operator">=></span>subroutine<span class="token operator">:</span> 计算节点电压
+update<span class="token operator">=></span>operation<span class="token operator">:</span> 更新元件状态
+cond<span class="token operator">=></span>condition<span class="token operator">:</span> 到达结束时间<span class="token operator">?</span>
+plot<span class="token operator">=></span>subroutine<span class="token operator">:</span> 调用Python绘制结果
+ed<span class="token operator">=></span>end<span class="token operator">:</span> 结束
+
+st<span class="token operator">-</span><span class="token operator">></span>find<span class="token operator">-</span><span class="token operator">></span><span class="token keyword">try</span><span class="token operator">-</span><span class="token operator">></span>set<span class="token operator">-</span><span class="token operator">></span>solve<span class="token operator">-</span><span class="token operator">></span>update<span class="token operator">-</span><span class="token operator">></span>cond
+<span class="token function">cond</span><span class="token punctuation">(</span>yes<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>plot<span class="token operator">-</span><span class="token operator">></span>ed
+<span class="token function">cond</span><span class="token punctuation">(</span>no<span class="token punctuation">)</span><span class="token operator">-</span><span class="token operator">></span>solve<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p><br /><br /></p>
+<h2 id="其他细节设计">其他细节设计</h2>
+<hr>
+<h3 id="元件的行为与参考方向">元件的行为与参考方向</h3>
+<p>计算电路的状态时，为了从电压确定电流，就需要确定一个参考方向。从手工计算的角度而言，一般考虑关联或者非关联参考方向，对于程序来说，我采用的设计是无源元件电压取第一个结点为高电势，而电源相反。这样计算时无源元件相当于取关联方向，电源相当于取非关联方向。</p>
+<h3 id="动态元件的极性问题">动态元件的极性问题</h3>
+<p>动态元件本来是无源元件，一般也不具有极性，但是在程序的设计却出现了动态元件的“极性”问题。在进行暂态分析时，每个时间点都进行的是稳态分析。而动态元件在此时被视为电源，电源是有极性的，这就使得动态元件表现出了本来不应该有的极性，有时带来错误的解。</p>
+<p>例如一阶 RC 电路的零状态情况，按照如下的格式输入：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-none"><code class="language-none">0 1 VS 1
+1 2 R 10
+0 2 C 1 0.0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>这时，按照输入的顺序，电容就会以<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>→</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">0\rarr 2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span></span></span></span>为电压升高的方向，此时电源给电容充电的结果是使得其状态量（电压）增大，但是电容的电压方向却与电源相同，结果是电容器上的电压可以无限制地升高，并且升高得越来越快，这能量都不守恒了（笑）。</p>
+<p>为了解决这种问题，就需要先进行一次试计算：在初始状态下，计算电容的端电压（或电感的电流），如果电容的端电压显示它将被充电，那么电容的电压方向应当调整到与充电电压相反，放电情况下则不存在这样的问题。电感的处理与电容是类似的。</p>
+<p><br /><br /></p>
+<h2 id="总结与反思">总结与反思</h2>
+<hr>
+<p>思路和设计上的问题在之前已经说过，就不再赘述。</p>
+<p>在程序实现的过程中，出现过不少计划的时候完全没有意识到的问题，都是以后值得警醒的。</p>
+<p>比如最初定义的<code>Element</code>类并没有电流和电压属性，后来在做暂态分析时发现：如果更新动态元件的状态时，要全部用 VCR 来实时计算其他元件的电流，就要从元件层向上调用电路层，并且还要调用电路层不应对外暴露的结点电压，这就带来了头文件循环包含和封装破坏的问题。所以最终对<code>Element</code>类作了修改，增加了这两个属性和对应的几个接口。然后就发现，改了基类之后还需要对派生类作许多修改。这是整个过程中对整个元件类作的最大改动，增加了许多调试量，也造成了后来电压电流参考方向的一系列问题。</p>
+<p>再比如动态元件的“极性”问题，这种理论推导和程序实现的不一致造成的问题在设计时被我忽略了，导致了非常荒谬的结果，直到对将近一半的元件层和电路层的实现作了排查才发现。</p>
+<p>从技术角度来说，程序还是有不少比较明显的待改进处。比如方程组的求解有更成熟的可用方案、与 Python 的通信做得很粗糙导致结果曲线的展示效果打了折扣等等，如果要构建一个可用的工具，这都是需要仔细打磨的部分。</p>
+<p>不过总体而言，这是一次让自己有所收获的实践，这个课设也算没有白做，所得的成果以一个 demo 的定位来衡量的话，也可以让我这个初学者为之小小自得一下了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B/" class="category-chain-item">编程</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%AF%BE%E7%A8%8B/" class="print-no-link">#课程</a>
+      
+        <a href="/tags/%E6%95%B0%E5%80%BC%E8%AE%A1%E7%AE%97/" class="print-no-link">#数值计算</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>电路课程设计-程序设计</div>
+      <div>https://greyishsong.ink/电路课程设计-程序设计/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>greyishsong</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年1月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - 非商业性使用">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - 相同方式共享">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/24%E7%AD%89%E5%88%86%E8%9D%8E%E5%AD%90/" title="24等分蝎子">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">24等分蝎子</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/%E5%88%86%E5%BD%A2%E5%87%A0%E4%BD%95%E8%B5%84%E6%96%99%E5%B0%8F%E8%AE%B0/" title="分形几何资料小记">
+                        <span class="hidden-mobile">分形几何资料小记</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+      <div class="col-lg-7 mx-auto nopadding-x-md">
+        <div class="container custom mx-auto">
+          <div class="social-share" data-sites="qzone,qq,weibo,wechat,douban,facebook,twitter"></div>
+        </div>
+      </div>
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      陕ICP备20002523号
+    </a>
+  </span>
+  
+    
+      <span>
+        <a
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=61010302000579"
+          rel="nofollow noopener"
+          class="beian-police"
+          target="_blank"
+        >
+          
+            <span style="visibility: hidden; width: 0">|</span>
+            <img src="/images/beian.png" srcset="/img/loading.gif" lazyload alt="police-icon"/>
+          
+          <span>陕公网安备 61010302000579号</span>
+        </a>
+      </span>
+    
+  
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script  src="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" ></script>
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<!-- hexo injector body_end start --><link href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script><!-- hexo injector body_end end --></body>
+</html>

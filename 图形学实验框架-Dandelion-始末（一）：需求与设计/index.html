@@ -1,0 +1,1018 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.svg">
+  <link rel="icon" href="/images/icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="greyishsong">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="和同学聊天时开玩笑说，建设一门课就好像养了一个孩子，时时处处需要关心。今年我为本科的图形学课程编写了全新的实验框架，也算是慢慢走出了完全模仿 CMU 15&#x2F;462 的阶段，试图更好地在有限的教学条件下展现图形学的趣味。其实在此之前我并未写过如此规模的程序，完成框架的过程也因此成了锻炼自己的过程。如今框架初成，用这几篇文章回顾和总结一些设计与开发的经验，既是一段给后来开发者的说明，也是记一些自己的小">
+<meta property="og:type" content="article">
+<meta property="og:title" content="图形学实验框架 Dandelion 始末（一）：需求与设计">
+<meta property="og:url" content="https://greyishsong.ink/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="greyishsong">
+<meta property="og:description" content="和同学聊天时开玩笑说，建设一门课就好像养了一个孩子，时时处处需要关心。今年我为本科的图形学课程编写了全新的实验框架，也算是慢慢走出了完全模仿 CMU 15&#x2F;462 的阶段，试图更好地在有限的教学条件下展现图形学的趣味。其实在此之前我并未写过如此规模的程序，完成框架的过程也因此成了锻炼自己的过程。如今框架初成，用这几篇文章回顾和总结一些设计与开发的经验，既是一段给后来开发者的说明，也是记一些自己的小">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://greyishsong.ink/images/dandelion.png">
+<meta property="article:published_time" content="2023-09-30T06:18:35.000Z">
+<meta property="article:modified_time" content="2024-01-28T11:34:38.395Z">
+<meta property="article:author" content="greyishsong">
+<meta property="article:tag" content="图形学">
+<meta property="article:tag" content="课程">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="本科教育">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://greyishsong.ink/images/dandelion.png">
+  
+  
+  
+  <title>图形学实验框架 Dandelion 始末（一）：需求与设计 - greyishsong</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"greyishsong.ink","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"a1Kv3OSkTrFKyMVyQy5vOxqf-gzGzoHsz","app_key":"2ioOotea0dkGu0KrNYcWYS1r","server_url":"https://a1kv3osk.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/rss2.xml" title="greyishsong" type="application/rss+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>greyishsong</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/rss2.xml" target="_self">
+                <i class="iconfont icon-rss"></i>
+                <span>RSS</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/dandelion.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="图形学实验框架 Dandelion 始末（一）：需求与设计"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-09-30 14:18" pubdate>
+          2023年9月30日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          42 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="编程"
+        id="heading-41282bf95e43c64d579757573a03cdde" role="tab" data-toggle="collapse" href="#collapse-41282bf95e43c64d579757573a03cdde"
+        aria-expanded="true"
+      >
+        编程
+        <span class="list-group-count">(11)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-41282bf95e43c64d579757573a03cdde"
+           role="tabpanel" aria-labelledby="heading-41282bf95e43c64d579757573a03cdde">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/" title="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（三）：构造生成树进行ARP广播</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/" title="SDN实验（二）：动态变更转发路径"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（二）：动态变更转发路径</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/" title="SDN实验（四）：测定链路时延"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（四）：测定链路时延</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/" title="图形学实验框架 Dandelion 始末（一）：需求与设计"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">图形学实验框架 Dandelion 始末（一）：需求与设计</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA/" title="电路课程设计-模型构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-模型构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" title="电路课程设计-程序设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-程序设计</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">图形学实验框架 Dandelion 始末（一）：需求与设计</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>和同学聊天时开玩笑说，建设一门课就好像养了一个孩子，时时处处需要关心。今年我为本科的图形学课程编写了全新的实验框架，也算是慢慢走出了完全模仿 CMU 15/462 的阶段，试图更好地在有限的教学条件下展现图形学的趣味。其实在此之前我并未写过如此规模的程序，完成框架的过程也因此成了锻炼自己的过程。如今框架初成，用这几篇文章回顾和总结一些设计与开发的经验，既是一段给后来开发者的说明，也是记一些自己的小故事。</p>
+<span id="more"></span>
+<blockquote>
+<p>Dandelion 实验框架发布版本：<a target="_blank" rel="noopener" href="https://github.com/XJTU-Graphics/dandelion">GitHub</a> <a target="_blank" rel="noopener" href="https://gitee.com/xjtu-graphics/dandelion">Gitee</a></p>
+</blockquote>
+<h2 id="开发前的思考">开发前的思考</h2>
+<h3 id="为什么不继续沿用-CMU-的方案？">为什么不继续沿用 CMU 的方案？</h3>
+<p>在 2022 至 2023 学年，我们的图形学实验方案是直接来自 CMU 15/462 <em>Computer Graphics</em> 这门课程的。但我们只有 32 课时可用，而同学的工程能力是不如 CMU 的，因此去掉了许多实验内容，只留下了其中的六个实验，重组成难度较低的三个实验（必做）与相对较难的三个实验（三选一）。</p>
+<p>然而这种策略与其说是删减，还不如说是挑选——因为我们放弃的实验比留用的还要多很多。这导致各实验之间几乎没有关联性可言，很难说是“一套”实验。更麻烦的是 CMU 在光栅图形学上分配的内容较少（只有一个二维光栅化器），所以我们不想采用 15/462 的光栅化实验。为了补齐这一部分，我们又引入了深圳大学的图形学实验，最终带来了更强的割裂感和很多随之而来的麻烦。于是，2022 至 2023 学年的图形学课程就留下了既可喜又遗憾的尾声：可喜的是实验和文档的质量迎来了大幅改善；遗憾的是一路磕磕绊绊，且实验和课堂并不太合拍。</p>
+<p>虽然不完全赞同 CMU 的实验题目设计，但我确实钦佩这些教授与 TA 们为了开发 Scotty3D 实验框架所作的努力。他们留下的是一个集场景布局、模型编辑、离线渲染、骨骼动画与粒子系统于一身的全功能框架，并且代码可读性相当不错。</p>
+<p>那么我们能否修改 Scotty3D 来适应自己的教学需求呢？我认为是可能的。但 Scotty3D 足足有一万六千行代码，却只有一千多行注释，且没有任何架构文档用于介绍模块组织方式和数据交换。我们的核心开发者仅有两个人，技术实力也偏弱，仅仅有代码可读性还是稍显不够，需要花费很多时间才能完全掌握这个具体而微的框架。这个时间是多久呢？也许一两个月，也许四五个月，我没有把握。</p>
+<p>既然如此，不如从头重写一个自己的实验框架吧。这个想法一出现在我的脑海里，就扎根扎得越来越深，不到半个月就驱使我作出了决定。虽然造轮子不是商业美德，但它是学习美德嘛。除了“想做点什么”的动力以外，也有一些实际的考虑：</p>
+<ul>
+<li>自己的框架是真正“可控”的。这种可控不仅是指增减功能的自由，更是指架构和源代码的理解。只要开发过程能坚持及时记录足够的文档和注释，我们完全可以准确地理解每一个类、每一个接口的功能和设计思路，这是后续开发改进的最重要保障。</li>
+<li>相较于效率，Scotty3D 更强调编写简单，这在实际教学过程中产生了一些性能问题。对于常见的建模工具，加载、编辑或渲染几万个三角形面的模型是很容易的。但 Scotty3D 的某些设计导致它在进入建模模式后效率很低，部分同学在轻薄笔记本上甚至要顶着个位数的帧率做实验，造成了不小的麻烦。</li>
+<li>Scotty3D 非常强调光线追踪，很多用于光线追踪的代码与程序主体耦合得很紧，想要再编写其他的软渲染器就要大改框架。但我们认为光线追踪并不是渲染的全部，更想要一个像 Blender 那样可以切换渲染器的框架。</li>
+<li>我们在动画方面的教学力量比较弱，所以其实不需要 Scotty3D 那么强的动画功能。</li>
+</ul>
+<h3 id="我们需要多少功能？">我们需要多少功能？</h3>
+<p>一个像 Blender 一样全能的成品是很诱人的，如果我一开始没有想好要舍弃哪些功能，那么之后颇有可能陷入增添功能的热情不可自拔，进而失去了维护文档的精力，也就背离了“可控”的初衷。正如所有软件需求分析的第一步，我需要确定“做什么、不做什么”。</p>
+<p>首先我同样想要做一个功能全面的框架，所有的实验都在同一个框架下完成。凭借自己有限的经验和知识，我大致将框架开发工作划分成五个部分：</p>
+<ul>
+<li>图形 API 和平台 API 抽象：在不同平台上创建程序的运行环境，负责处理退出时释放资源的操作。</li>
+<li>场景布局和 UI：赋予使用者摆放、操作模型的能力。</li>
+<li>渲染系统和渲染器：设置渲染参数、实现渲染管线。</li>
+<li>建模和编辑：修改模型的几何形状，实现一些几何处理算法。</li>
+<li>动画：基于物理的简单动画。</li>
+</ul>
+<p>作为一个带有中文图形界面的软件，这个框架大概会需要加载字体；而要展示三维数据，至少要使用一种图形 API ，也就需要创建类似上下文的环境并加载可用的函数地址。如果整个框架只能加载指定的几个模型，那实在谈不上有趣，因此它至少应该能任意加载一两种格式的模型文件，也能将载入的模型放在任何位置、摆出任意姿态。到此为止，可以看作是一个带有 GUI 的模型加载和预览工具。</p>
+<p>接下来是对应于图形学三个核心问题（渲染、建模、动画）的功能性要求：</p>
+<ul>
+<li>由于我们希望这个框架能实现各种渲染流程，显然它应该像 Blender 一样可以切换“渲染器”，每个渲染器都对应一种渲染管线。为避免某个实验过于艰深，可以牺牲管线的灵活程度，只保留较少的可编程部分。要加载纹理贴图并保持通用性，势必为“如何识别种类繁多的图像格式”所扰，大幅增加测试成本。因此，尽管纹理贴图是渲染与几何交叉的重要领域，我还是决定暂且放弃它。</li>
+<li>这个框架应该具备完成任意形变的能力，同时也能通过几何处理算法做一些半自动的建模。但真正成熟的建模工具需要为提高建模效率而额外开发很多功能（例如基本的对称、区域选择、区域编辑，高级的雕刻等等），这些都可以不考虑。</li>
+<li>要实现一个骨骼动画系统，至少要处理好关节运动解算、蒙皮变形、关键帧编辑等问题，我们这方面的技术不足，因此直接放弃基于关键帧和骨骼的动画。基于物理仿真的动画则可以比较容易地实现，因为只要舍弃形变和复杂的转动判定，并且只做离散的运动仿真，就不必大量增加功能模块。</li>
+</ul>
+<h3 id="功能以外">功能以外</h3>
+<p>对于一份作业而言，通常功能即一切；然而对于一个软件而言，功能只是起步。我们的框架是用于教学的，那么如何让同学快速上手规模较大的代码，尤其是如何让同学顺畅地理解不属于实验任务的代码，是非常重要的问题。另外，一个功能全面的框架要包含许多调整和设置用的 UI 元素，那么如何减少同学学习软件操作的成本也值得考虑。</p>
+<p>第一个问题通常是由文档解决的。在以往的教学过程中，所有的接口细节都被放入实验手册中，每当我们认为同学需要使用某个接口时就在相应的章节介绍之。要把所有资料都写进实验文档，就要在实验章节末尾附加很长的调用说明和代码片段，排版到分页的 PDF 文档上不便阅读；接口说明与实验讲解绑定的做法也不利于同学之后重新查找。一个成熟的库或框架通常会有树形结构的文档，按照模块组织所有类和接口的含义说明。我准备为所有的接口编写一份类似的开发者文档，既便于同学查找，也有助于后续师弟师妹接手框架继续开发。开发者文档用网页而不是分页文档的形式发布，版式更适合代码，也更方便作小范围更新。</p>
+<p>第二个问题则要求软件操作方法足够简单。现代的三维建模工具往往设置大量快捷键和组合键，以提高创作效率。然而我们的目标是让同学在十五分钟以内了解 Dandelion 的所有操作，点击的方式虽然低效但不必专门学习，比快捷键更合适。而各处修改属性数值的 UI 元素也应该尽可能保持相同的风格，这样尝试一次就能会用。从另一个角度来说，一套好的快捷键系统也需要经过反复的讨论、设计和修改，我们并没有完成它的专业素养和时间。</p>
+<h2 id="自顶向下的设计：从数据展示开始">自顶向下的设计：从数据展示开始</h2>
+<p>软件设计通常有两种思路：一是自顶向下，先设计模块再考虑细节；二是自底向上，先实现功能再尝试组合。</p>
+<p>Dandelion 是一个与用户频繁交互的三维设计工具，当我开始设计它时，首先想到的是一些粗略的交互方式、操作界面，以及它应该如何展示各种数据，而不是某些功能具体如何实现。因此，我是采用自顶向下的思路设计 Dandelion 的。</p>
+<h3 id="界面与模式">界面与模式</h3>
+<p>当我只有一个尝试的念头时，Scotty3D 和 Blender 给了我 Dandelion 最初的设计目标。</p>
+<div class="group-image-container"><div class="group-image-row"><div class="group-image-wrap"><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/scotty3d.png" srcset="/img/loading.gif" lazyload alt="Scotty3D"></div><div class="group-image-wrap"><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/blender.png" srcset="/img/loading.gif" lazyload alt="Blender"></div></div></div>
+<p>Scotty3D 和 Blender 共有的界面设计思路是“模式切换”：通过顶栏上模式选项卡可以改变当前的操作模式，不同的操作模式对应不同的功能，但共享同一份三维数据（场景数据）。对于一个全功能的设计软件来说，这样有利于将不同功能的 UI 元素聚集在一起，至少我是想不出更好的解决方案了。</p>
+<blockquote>
+<p>回顾一下之前提到的五个部分：图形 API 和平台 API 抽象、场景布局和 UI、渲染系统和渲染器、建模和编辑、动画</p>
+</blockquote>
+<p>确定了采用这种 UI 方案，就确认了所有模式下共用的基础代码：API 抽象和场景预览。</p>
+<h3 id="技术选型">技术选型</h3>
+<p>我希望搭建一个跨平台的框架，那么就需要处理各平台上的渲染、UI、文件交互等问题。另外，图形学实验中涉及一些线性代数计算，也需要一个数学库。</p>
+<p>首先要选择的就是图形 API 和 GUI 框架。Dandelion 对硬件渲染的需求仅限于预览场景，复杂的渲染管线都属于离线渲染（软渲染）部分。因此，我认为没有必要用 Vulkan 等现代 API 来提高性能，选择跨平台更容易、开发也更简单的 OpenGL 更合适。配合 OpenGL 使用的 loader 是 GLFW 和 GLAD 。</p>
+<p>在 GUI 方面，完全跨平台的 C++ GUI 方案主要是 Qt 和各类 IMGUI（立即模式 GUI）。从课程实验框架的角度看，</p>
+<ul>
+<li>Qt 能力更全面，但依赖更重、构建更复杂、学习成本更高</li>
+<li>IMGUI 依赖更少，但稳定性可能不如 Qt</li>
+</ul>
+<p>由于我更看重轻量化和降低学习成本，一个 IMGUI 库更合适些，最后选择了经典的 Dear ImGui 。</p>
+<p>文件交互方面，</p>
+<ul>
+<li>Scotty3D 的做法是自己封装跨平台的文件对话框 API，在 Windows / Linux / macOS 上分别使用 Win32 / GTK3 / Apple 原生 API 创建文件对话框</li>
+<li>Blender 的做法是直接实现一套跨平台自绘 GUI ，直接封装操作系统的文件操作 API</li>
+</ul>
+<p>二者成本都相当高，并且在 Linux 上需要引入额外的依赖 (pkg-config) 来编译 GTK3 。后来我找到了 portable-file-dialog 这个项目，它是对各平台原生文件对话框的简单封装，在 Windows 上使用 Win32 API 、GNOME / KDE 上调用命令、macOS 上使用 AppleScript ，整个项目只有一个文件，依赖的原生 API 或命令（脚本语言）也都很稳定，完全可以满足需求。</p>
+<p>数学计算方面有 GLM 和 Eigen 两个候选项。GLM 更轻并且与 OpenGL API 结合得更好，但缺乏求解方程组的能力，而几何处理和物理仿真很可能需要它，所以我还是选择了 Eigen 。</p>
+<h3 id="GUI-软件的架构模式：MVC">GUI 软件的架构模式：MVC</h3>
+<p>模型-视图-控制器 (Model-View-Controller, MVC) 也许是最经典的现代 GUI 应用架构模式了。这种架构方法将整个软件分为三部分：</p>
+<ul>
+<li>进行逻辑处理并提供数据的<strong>模型</strong></li>
+<li>接收数据进行可视化的<strong>视图</strong></li>
+<li>处理输入和交互逻辑的<strong>控制器</strong></li>
+</ul>
+<p>之后还有 MVVM 等改进的架构，不过对 Dandelion 这个不大的软件来说经典的 MVC 应该够用了。将开发任务按照 MVC 架构进行充足，就形成了一个初步的架构图：</p>
+<p><img src="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/MVC-architecture.svg" srcset="/img/loading.gif" lazyload alt="MVC Architecture"></p>
+<p>上图中低层 API 抽象、GUI 组件两部分所对应的功能都受到了 Dear ImGui 这个 GUI 库的影响：使用立即模式 GUI 时，开发者在每一帧调用函数来请求绘制 UI 组件，而 UI 组件内部的状态是不可见的，对外表现为无状态 UI 。因此，与用户交互相关的全局状态需要在控制器部分维护，以此决定要请求绘制哪些 UI 组件。场景预览的部分直接调用 OpenGL API 渲染而不经过 Dear ImGui ，对场景的交互操作（例如旋转、平移视角）也需要通过直接封装 GLFW API 来检测和响应。</p>
+<p>考虑场景预览、渲染、动画、建模等过程，用箭头标出模型层与视图层间的数据流向，可以看到场景存储是很多视图模块的数据源，这正是多个模式共用场景数据的结果。</p>
+<h2 id="最初原型">最初原型</h2>
+<p>根据之前所作的的需求分析、架构设计，第一阶段的原型需要实现的部分是：</p>
+<ul>
+<li>低层 API 抽象</li>
+<li>场景存储与访问</li>
+<li>场景预览</li>
+<li>物体参数</li>
+<li>鼠标和按键输入处理</li>
+<li>全局状态维护</li>
+</ul>
+<p>这个原型完成后的效果大致是一个可以打开模型文件并显示在场景中的预览工具，除此以外没有其他功能。最初的设计至此完成，下一步的工作就是开始设计类和接口，开始写代码了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B/" class="category-chain-item">编程</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
+      
+        <a href="/tags/%E8%AF%BE%E7%A8%8B/" class="print-no-link">#课程</a>
+      
+        <a href="/tags/%E7%BC%96%E7%A8%8B/" class="print-no-link">#编程</a>
+      
+        <a href="/tags/%E6%9C%AC%E7%A7%91%E6%95%99%E8%82%B2/" class="print-no-link">#本科教育</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>图形学实验框架 Dandelion 始末（一）：需求与设计</div>
+      <div>https://greyishsong.ink/图形学实验框架-Dandelion-始末（一）：需求与设计/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>greyishsong</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年9月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - 非商业性使用">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - 相同方式共享">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/%E5%88%9D%E6%B6%89-%CE%BB-%E6%BC%94%E7%AE%97-lambda-calculus/" title="初涉 λ 演算 (lambda calculus)">
+                        <span class="hidden-mobile">初涉 λ 演算 (lambda calculus)</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+      <div class="col-lg-7 mx-auto nopadding-x-md">
+        <div class="container custom mx-auto">
+          <div class="social-share" data-sites="qzone,qq,weibo,wechat,douban,facebook,twitter"></div>
+        </div>
+      </div>
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      陕ICP备20002523号
+    </a>
+  </span>
+  
+    
+      <span>
+        <a
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=61010302000579"
+          rel="nofollow noopener"
+          class="beian-police"
+          target="_blank"
+        >
+          
+            <span style="visibility: hidden; width: 0">|</span>
+            <img src="/images/beian.png" srcset="/img/loading.gif" lazyload alt="police-icon"/>
+          
+          <span>陕公网安备 61010302000579号</span>
+        </a>
+      </span>
+    
+  
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script  src="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" ></script>
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<!-- hexo injector body_end start --><link href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script><!-- hexo injector body_end end --></body>
+</html>

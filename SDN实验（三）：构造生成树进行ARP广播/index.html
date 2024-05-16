@@ -1,0 +1,1101 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.svg">
+  <link rel="icon" href="/images/icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="greyishsong">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="在传统网络中，如果存在环路，可以用生成树协议解决广播风暴问题。生成树协议运行在交换机上，各交换机平等协商产生生成树根和通往根的路径，该过程是分布的。 SDN 的控制器可以获得全局的拓扑信息，直接构造整个生成树，再通过流表改变交换机的（广播）转发行为，进而避免广播风暴。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDN实验（三）：构造生成树进行ARP广播">
+<meta property="og:url" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/index.html">
+<meta property="og:site_name" content="greyishsong">
+<meta property="og:description" content="在传统网络中，如果存在环路，可以用生成树协议解决广播风暴问题。生成树协议运行在交换机上，各交换机平等协商产生生成树根和通往根的路径，该过程是分布的。 SDN 的控制器可以获得全局的拓扑信息，直接构造整个生成树，再通过流表改变交换机的（广播）转发行为，进而避免广播风暴。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/arpanet.png">
+<meta property="article:published_time" content="2021-08-13T03:14:19.000Z">
+<meta property="article:modified_time" content="2022-09-07T02:45:05.264Z">
+<meta property="article:author" content="greyishsong">
+<meta property="article:tag" content="SDN">
+<meta property="article:tag" content="软件定义网络">
+<meta property="article:tag" content="Mininet">
+<meta property="article:tag" content="Ryu">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://greyishsong.ink/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/arpanet.png">
+  
+  
+  
+  <title>SDN实验（三）：构造生成树进行ARP广播 - greyishsong</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"greyishsong.ink","root":"/","version":"1.9.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"a1Kv3OSkTrFKyMVyQy5vOxqf-gzGzoHsz","app_key":"2ioOotea0dkGu0KrNYcWYS1r","server_url":"https://a1kv3osk.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+    <!-- Google tag (gtag.js) -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        Fluid.utils.createScript("https://www.googletagmanager.com/gtag/js?id=", function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag('js', new Date());
+          gtag('config', '');
+        });
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/rss2.xml" title="greyishsong" type="application/rss+xml">
+</head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>greyishsong</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>友链</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/rss2.xml" target="_self">
+                <i class="iconfont icon-rss"></i>
+                <span>RSS</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/images/banner.gif') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SDN实验（三）：构造生成树进行ARP广播"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-08-13 11:14" pubdate>
+          2021年8月13日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          32 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="编程"
+        id="heading-41282bf95e43c64d579757573a03cdde" role="tab" data-toggle="collapse" href="#collapse-41282bf95e43c64d579757573a03cdde"
+        aria-expanded="true"
+      >
+        编程
+        <span class="list-group-count">(11)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-41282bf95e43c64d579757573a03cdde"
+           role="tabpanel" aria-labelledby="heading-41282bf95e43c64d579757573a03cdde">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9AMininet%E7%9A%84%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98%E4%B8%8EFat-Tree%E7%9A%84%E6%9E%84%E5%BB%BA/" title="SDN实验（一）：Mininet的安装问题与Fat-Tree的构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（一）：Mininet的安装问题与Fat-Tree的构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/" title="SDN实验（三）：构造生成树进行ARP广播"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">SDN实验（三）：构造生成树进行ARP广播</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/" title="SDN实验（二）：动态变更转发路径"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（二）：动态变更转发路径</span>
+        </a>
+      
+    
+      
+      
+        <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/" title="SDN实验（四）：测定链路时延"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">SDN实验（四）：测定链路时延</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E9%9C%80%E6%B1%82%E4%B8%8E%E8%AE%BE%E8%AE%A1/" title="图形学实验框架 Dandelion 始末（一）：需求与设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（一）：需求与设计</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/" title="图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（三）：OpenGL API 抽象与实时渲染</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E6%9C%80%E5%88%9D%E5%8E%9F%E5%9E%8B%E5%AE%9E%E7%8E%B0/" title="图形学实验框架 Dandelion 始末（二）：最初原型实现"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（二）：最初原型实现</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%BC%8F%E4%B8%8E%E8%BD%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E7%A8%8B/" title="图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">图形学实验框架 Dandelion 始末（四）：渲染模式与软渲染流程</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA/" title="电路课程设计-模型构建"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-模型构建</span>
+        </a>
+      
+    
+      
+      
+        <a href="/%E7%94%B5%E8%B7%AF%E8%AF%BE%E7%A8%8B%E8%AE%BE%E8%AE%A1-%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" title="电路课程设计-程序设计"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">电路课程设计-程序设计</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SDN实验（三）：构造生成树进行ARP广播</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>在传统网络中，如果存在环路，可以用生成树协议解决广播风暴问题。生成树协议运行在交换机上，各交换机平等协商产生生成树根和通往根的路径，该过程是分布的。</p>
+<p>SDN 的控制器可以获得全局的拓扑信息，直接构造整个生成树，再通过流表改变交换机的（广播）转发行为，进而避免广播风暴。</p>
+<span id="more"></span>
+<h2 id="识别广播">识别广播</h2>
+<p>数据包的广播可以通过网络协议中的特定保留地址实现。ARP 协议建立在以太网协议之上，一个 ARP 请求包的目的 MAC 地址是 <code>ff:ff:ff:ff:ff:ff</code> 。</p>
+<p>调用 Ryu API 构造 <code>eth_dst</code> 匹配域为广播 MAC 地址的流表项，即可规定交换机对 ARP 广播数据的转发行为。</p>
+<h2 id="改变广播行为">改变广播行为</h2>
+<p>广播是将数据包传遍整个网络，朴素思路是每个交换机收到数据包后向所有其他端口转发，但存在环路就会产生广播风暴。若一个节点只将数据包转发给自己在生成树上的邻居，则转发过程不存在环路和广播风暴的问题。证明很容易：</p>
+<p>规定首个发出数据包的节点为根（生成树是无根树），则整个转发过程等价于对生成树的一次广度优先遍历，因此必然是不重不漏的。</p>
+<p>构建一个模仿 ARPANET<sup><a href="#1">[1]</a></sup><a name="back-1"></a> 的网络：</p>
+<img src="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E6%9E%84%E9%80%A0%E7%94%9F%E6%88%90%E6%A0%91%E8%BF%9B%E8%A1%8CARP%E5%B9%BF%E6%92%AD/arpanet.png" srcset="/img/loading.gif" lazyload class="">
+<p>在这个网络中，每个交换机上连接有一台终端，任意终端之间都可以通信。对于每个交换机，在生成树上进行广播的行为有两种：</p>
+<ul>
+<li>若收到终端发来的数据包，则发给所有相邻的交换机；</li>
+<li>若收到交换机发来的数据包，则发给所有其他相邻交换机。</li>
+</ul>
+<p>实现这些行为需要控制器获取全局拓扑、构造生成树、下发流表项。</p>
+<h3 id="获取全局拓扑">获取全局拓扑</h3>
+<p>这只是一个<strong>小实验</strong>，获取拓扑最简单的方法是直接用</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python">hosts    <span class="token operator">=</span> get_all_host<span class="token punctuation">(</span>self<span class="token punctuation">)</span>
+switches <span class="token operator">=</span> get_all_switch<span class="token punctuation">(</span>self<span class="token punctuation">)</span>
+links    <span class="token operator">=</span> get_all_link<span class="token punctuation">(</span>self<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>获得所有的终端、交换机和链路。以交换机作为节点、链路作为边<sup><a href="#2">[2]</a></sup><a name="back-2"></a>建图，构造生成树。数据包的转发过程不涉及终端，因此终端并不在图中，但需要记录每个交换机连接终端的端口，以区别于连接交换机的端口。</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python">new_g    <span class="token operator">=</span> Graph<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">for</span> switch <span class="token keyword">in</span> switches<span class="token punctuation">:</span>
+    new_g<span class="token punctuation">.</span>add_node<span class="token punctuation">(</span>switch<span class="token punctuation">.</span>dp<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">)</span>
+    <span class="token comment"># map dpid to Datapath object</span>
+    self<span class="token punctuation">.</span>id2dp<span class="token punctuation">[</span>switch<span class="token punctuation">.</span>dp<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">]</span> <span class="token operator">=</span> switch<span class="token punctuation">.</span>dp
+<span class="token keyword">for</span> host <span class="token keyword">in</span> hosts<span class="token punctuation">:</span>
+    <span class="token comment"># record the port connected to host</span>
+    self<span class="token punctuation">.</span>hostport<span class="token punctuation">[</span>host<span class="token punctuation">.</span>port<span class="token punctuation">.</span>dpid<span class="token punctuation">]</span> <span class="token operator">=</span> host<span class="token punctuation">.</span>port<span class="token punctuation">.</span>port_no
+    <span class="token comment"># map host's MAC address to the dpid it connected</span>
+    self<span class="token punctuation">.</span>mac2dpid<span class="token punctuation">[</span>host<span class="token punctuation">.</span>mac<span class="token punctuation">]</span> <span class="token operator">=</span> host<span class="token punctuation">.</span>port<span class="token punctuation">.</span>dpid
+<span class="token keyword">for</span> link <span class="token keyword">in</span> links<span class="token punctuation">:</span>
+    <span class="token comment"># an edge is described as (src_dpid, src_port, dst_dpid, dst_port)</span>
+    new_g<span class="token punctuation">.</span>add_edge<span class="token punctuation">(</span>
+            link<span class="token punctuation">.</span>src<span class="token punctuation">.</span>dpid<span class="token punctuation">,</span> link<span class="token punctuation">.</span>src<span class="token punctuation">.</span>port_no<span class="token punctuation">,</span>
+            link<span class="token punctuation">.</span>dst<span class="token punctuation">.</span>dpid<span class="token punctuation">,</span> link<span class="token punctuation">.</span>dst<span class="token punctuation">.</span>port_no
+        <span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<p>随着网络设备的增减，拓扑信息会发生改变，控制器维护的拓扑信息也应改变。直接的办法是：周期性获取拓扑，和消息处理相互独立。可以用 Ryu 提供的 <code>ryu.lib.hub</code> 类，它是对 eventlet 的封装，可以分出一个协程负责获取拓扑信息。具体实现分两部分：</p>
+<ul>
+<li>
+<p>类初始化时创建协程：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">*</span>args<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    self<span class="token punctuation">.</span>topo_thread <span class="token operator">=</span> hub<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_update_topology<span class="token punctuation">)</span>
+    <span class="token comment"># ...</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre></div></figure>
+</li>
+<li>
+<p>周期性执行：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">def</span> <span class="token function">_update_topology</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+        <span class="token comment"># update topoloty information</span>
+        <span class="token comment"># generate spanning tree</span>
+        <span class="token comment"># add flow table entries</span>
+        hub<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+</li>
+</ul>
+<div class="note note-warning">
+            <p>运行<code>_update_topology</code>的协程和处理消息的协程是属于<strong>同一线程</strong>的。当更新拓扑信息的协程放弃执行（调用<code>hub.sleep</code>）时，应用才能处理消息。因此，执行间隔不能太短，否则更新拓扑信息将占用绝大多数执行时间，导致不能正常处理消息——比如处理速度低于到达速度，消息队列爆掉。</p>
+          </div>
+<h3 id="构造生成树">构造生成树</h3>
+<p>不考虑边权问题，那么生成树的构造就很随便了。这里用邻接表存图，用简化的 Kruskal 算法（不排序）来构造一棵生成树：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Edge</span><span class="token punctuation">:</span>
+    <span class="token comment"># (from_node, from_port, to_node, to_port, weight)</span>
+
+<span class="token keyword">class</span> <span class="token class-name">UnionFindSet</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> nodes<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># initialize each node's father as itself</span>
+
+    <span class="token keyword">def</span> <span class="token function">find</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># find which set that `x` belongs to</span>
+    
+    <span class="token keyword">def</span> <span class="token function">union</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">,</span> y<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># union the two sets that `x` and `y` belong to</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Graph</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>nodes <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        self<span class="token punctuation">.</span>edges <span class="token operator">=</span> defaultdict<span class="token punctuation">(</span><span class="token keyword">lambda</span><span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">add_node</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> node_id<span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>nodes<span class="token punctuation">.</span>append<span class="token punctuation">(</span>node_id<span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">add_edge</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span>
+            from_node <span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">,</span>
+            from_port <span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">,</span>
+            to_node   <span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">,</span>
+            to_port   <span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">,</span>
+            weight    <span class="token punctuation">:</span> <span class="token builtin">float</span> <span class="token operator">=</span> <span class="token number">1</span>
+        <span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>edges<span class="token punctuation">[</span>from_node<span class="token punctuation">]</span><span class="token punctuation">.</span>append<span class="token punctuation">(</span>
+                Edge<span class="token punctuation">(</span>from_port<span class="token punctuation">,</span> to_node<span class="token punctuation">,</span> to_port<span class="token punctuation">,</span> weight<span class="token punctuation">)</span>
+             <span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">spanning_tree</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># spanning tree</span>
+        st <span class="token operator">=</span> Graph<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>nodes<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> st
+        ufset <span class="token operator">=</span> UnionFindSet<span class="token punctuation">(</span>self<span class="token punctuation">.</span>nodes<span class="token punctuation">)</span>
+
+        <span class="token keyword">for</span> node <span class="token keyword">in</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">:</span>
+            st<span class="token punctuation">.</span>add_node<span class="token punctuation">(</span>node<span class="token punctuation">)</span>
+        <span class="token keyword">for</span> node <span class="token keyword">in</span> self<span class="token punctuation">.</span>nodes<span class="token punctuation">:</span>
+            <span class="token keyword">for</span> edge <span class="token keyword">in</span> self<span class="token punctuation">.</span>edges<span class="token punctuation">[</span>node<span class="token punctuation">]</span><span class="token punctuation">:</span>
+                <span class="token keyword">if</span> ufset<span class="token punctuation">.</span>find<span class="token punctuation">(</span>node<span class="token punctuation">)</span> <span class="token operator">!=</span> ufset<span class="token punctuation">.</span>find<span class="token punctuation">(</span>edge<span class="token punctuation">.</span>to_node<span class="token punctuation">)</span><span class="token punctuation">:</span>
+                    st<span class="token punctuation">.</span>add_edge<span class="token punctuation">(</span>
+                            node<span class="token punctuation">,</span> edge<span class="token punctuation">.</span>from_port<span class="token punctuation">,</span>
+                            edge<span class="token punctuation">.</span>to_node<span class="token punctuation">,</span> edge<span class="token punctuation">.</span>to_port
+                        <span class="token punctuation">)</span>
+                    st<span class="token punctuation">.</span>add_edge<span class="token punctuation">(</span>
+                            edge<span class="token punctuation">.</span>to_node<span class="token punctuation">,</span> edge<span class="token punctuation">.</span>to_port<span class="token punctuation">,</span>
+                            node<span class="token punctuation">,</span> edge<span class="token punctuation">.</span>from_port
+                        <span class="token punctuation">)</span>
+                    ufset<span class="token punctuation">.</span>union<span class="token punctuation">(</span>node<span class="token punctuation">,</span> edge<span class="token punctuation">.</span>to_node<span class="token punctuation">)</span>
+
+        <span class="token keyword">return</span> st<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<h3 id="表达为流表项">表达为流表项</h3>
+<p>设一个节点（交换机）在生成树上有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> 个邻居，则一共有 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> 条流表项需要下发到这个节点：</p>
+<ul>
+<li>前 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> 条：任意邻居发来广播包时，转发给其余 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">k-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> 个邻居；</li>
+<li>最后一条：终端发来广播包时，转发给所有邻居。</li>
+</ul>
+<figure><div class="code-wrapper"><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token comment"># here `node` means dpid</span>
+<span class="token keyword">for</span> node <span class="token keyword">in</span> self<span class="token punctuation">.</span>st<span class="token punctuation">.</span>nodes<span class="token punctuation">:</span>
+    <span class="token keyword">if</span> self<span class="token punctuation">.</span>hostport<span class="token punctuation">[</span>node<span class="token punctuation">]</span> <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+    dp <span class="token operator">=</span> self<span class="token punctuation">.</span>id2dp<span class="token punctuation">[</span>node<span class="token punctuation">]</span>
+    parser <span class="token operator">=</span> dp<span class="token punctuation">.</span>ofproto_parser
+    <span class="token keyword">for</span> edge <span class="token keyword">in</span> self<span class="token punctuation">.</span>st<span class="token punctuation">.</span>edges<span class="token punctuation">[</span>node<span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token comment"># when a broadcast packet comes from a neighbor, send it to</span>
+        <span class="token comment"># all OTHER neighbors and the host</span>
+        <span class="token keyword">match</span> <span class="token operator">=</span> parser<span class="token punctuation">.</span>OFPMatch<span class="token punctuation">(</span>
+                    in_port  <span class="token operator">=</span> edge<span class="token punctuation">.</span>from_port<span class="token punctuation">,</span>
+                    eth_dst  <span class="token operator">=</span> <span class="token string">'ff:ff:ff:ff:ff:ff'</span>
+                <span class="token punctuation">)</span>
+        actions <span class="token operator">=</span> <span class="token punctuation">[</span>
+                    parser<span class="token punctuation">.</span>OFPActionOutput<span class="token punctuation">(</span>e<span class="token punctuation">.</span>from_port<span class="token punctuation">)</span>
+                    <span class="token keyword">for</span> e <span class="token keyword">in</span> self<span class="token punctuation">.</span>st<span class="token punctuation">.</span>edges<span class="token punctuation">[</span>node<span class="token punctuation">]</span>
+                    <span class="token keyword">if</span> e<span class="token punctuation">.</span>from_port <span class="token operator">!=</span> edge<span class="token punctuation">.</span>from_port
+                  <span class="token punctuation">]</span>
+        actions<span class="token punctuation">.</span>append<span class="token punctuation">(</span>parser<span class="token punctuation">.</span>OFPActionOutput<span class="token punctuation">(</span>self<span class="token punctuation">.</span>hostport<span class="token punctuation">[</span>node<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>add_flow<span class="token punctuation">(</span>dp<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token keyword">match</span><span class="token punctuation">,</span> actions<span class="token punctuation">)</span>
+    <span class="token comment"># when a broadcast packet comes from the host, send it to</span>
+    <span class="token comment"># all neighbors</span>
+    <span class="token keyword">match</span> <span class="token operator">=</span> parser<span class="token punctuation">.</span>OFPMatch<span class="token punctuation">(</span>
+                in_port  <span class="token operator">=</span> self<span class="token punctuation">.</span>hostport<span class="token punctuation">[</span>node<span class="token punctuation">]</span><span class="token punctuation">,</span>
+                eth_dst  <span class="token operator">=</span> <span class="token string">'ff:ff:ff:ff:ff:ff'</span>
+            <span class="token punctuation">)</span>
+    actions <span class="token operator">=</span> <span class="token punctuation">[</span>
+                parser<span class="token punctuation">.</span>OFPActionOutput<span class="token punctuation">(</span>e<span class="token punctuation">.</span>from_port<span class="token punctuation">)</span>
+                <span class="token keyword">for</span> e <span class="token keyword">in</span> self<span class="token punctuation">.</span>st<span class="token punctuation">.</span>edges<span class="token punctuation">[</span>node<span class="token punctuation">]</span>
+              <span class="token punctuation">]</span>
+    self<span class="token punctuation">.</span>add_flow<span class="token punctuation">(</span>dp<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token keyword">match</span><span class="token punctuation">,</span> actions<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
+<h2 id="说明">说明</h2>
+<p>这是我对实验的一点小改动，和老师给出的两种思路并不相同。另两种解决 ARP 广播风暴的方法是：</p>
+<ul>
+<li>由控制器作 ARP 转发：控制器记录每个交换机连接终端的端口，让所有的 ARP 请求都触发 Packet-In ，再将这些请求一步发给上述端口。相当于不经过中间转发，直接广播到所有终端。</li>
+<li>以<code>(dpid, mac, dst_ip)</code>作为键，<code>port</code>作为值维护 ARP 广播数据包的转发记录。每个交换机收到广播包时检查对应的键，若值不存在则记录值并洪泛，值存在则丢弃数据包。</li>
+</ul>
+<h2 id="注释">注释</h2>
+<p><a name="1">[1]</a><a href="#back-1">^</a>历史上第一个网络，今天互联网的雏形。</p>
+<p><a name="2">[2]</a><a href="#back-2">^</a>用<code>get_all_links</code>获取到的链路是单向链路，两台交换机之间的链路会以一来一去的形式出现两次。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E7%BC%96%E7%A8%8B/" class="category-chain-item">编程</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/SDN/" class="print-no-link">#SDN</a>
+      
+        <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" class="print-no-link">#软件定义网络</a>
+      
+        <a href="/tags/Mininet/" class="print-no-link">#Mininet</a>
+      
+        <a href="/tags/Ryu/" class="print-no-link">#Ryu</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SDN实验（三）：构造生成树进行ARP广播</div>
+      <div>https://greyishsong.ink/SDN实验（三）：构造生成树进行ARP广播/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>greyishsong</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年8月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - 非商业性使用">
+                    <i class="iconfont icon-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - 相同方式共享">
+                    <i class="iconfont icon-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E6%B5%8B%E5%AE%9A%E9%93%BE%E8%B7%AF%E6%97%B6%E5%BB%B6/" title="SDN实验（四）：测定链路时延">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">SDN实验（四）：测定链路时延</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/SDN%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84/" title="SDN实验（二）：动态变更转发路径">
+                        <span class="hidden-mobile">SDN实验（二）：动态变更转发路径</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+      <div class="col-lg-7 mx-auto nopadding-x-md">
+        <div class="container custom mx-auto">
+          <div class="social-share" data-sites="qzone,qq,weibo,wechat,douban,facebook,twitter"></div>
+        </div>
+      </div>
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+    <!-- 备案信息 ICP for China -->
+    <div class="beian">
+  <span>
+    <a href="http://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
+      陕ICP备20002523号
+    </a>
+  </span>
+  
+    
+      <span>
+        <a
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=61010302000579"
+          rel="nofollow noopener"
+          class="beian-police"
+          target="_blank"
+        >
+          
+            <span style="visibility: hidden; width: 0">|</span>
+            <img src="/images/beian.png" srcset="/img/loading.gif" lazyload alt="police-icon"/>
+          
+          <span>陕公网安备 61010302000579号</span>
+        </a>
+      </span>
+    
+  
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script  src="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js" ></script>
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<!-- hexo injector body_end start --><link href="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/css/share.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script><!-- hexo injector body_end end --></body>
+</html>
