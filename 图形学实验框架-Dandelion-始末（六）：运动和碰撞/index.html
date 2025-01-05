@@ -16,23 +16,27 @@
   <meta name="author" content="greyishsong">
   <meta name="keywords" content="">
   
-    <meta name="description" content="初学OpenGL，使用VAO&#x2F;VBO&#x2F;EBO绘图时误用了错误的绑定顺序，结果窗口上完全没有出现应有的图形。本来对于这几个概念就了解得不是很清楚，看到这种API调用顺序的问题就更无奈。重新翻开之前的课程资料，又查找了一番，对此稍作总结。">
+    <meta name="description" content="《始末》系列是关于 Dandelion 1.0 版本的个人回忆，而这是系列里关于实现过程和细节的最后一篇。完成前面的诸多工作之后，利用场景、物体数据和渲染机制，再配合独立性很强的求解器，物体就可以运动起来了。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解">
-<meta property="og:url" content="https://greyishsong.ink/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:title" content="图形学实验框架 Dandelion 始末（六）：运动和碰撞">
+<meta property="og:url" content="https://greyishsong.ink/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E8%BF%90%E5%8A%A8%E5%92%8C%E7%A2%B0%E6%92%9E/index.html">
 <meta property="og:site_name" content="greyishsong">
-<meta property="og:description" content="初学OpenGL，使用VAO&#x2F;VBO&#x2F;EBO绘图时误用了错误的绑定顺序，结果窗口上完全没有出现应有的图形。本来对于这几个概念就了解得不是很清楚，看到这种API调用顺序的问题就更无奈。重新翻开之前的课程资料，又查找了一番，对此稍作总结。">
+<meta property="og:description" content="《始末》系列是关于 Dandelion 1.0 版本的个人回忆，而这是系列里关于实现过程和细节的最后一篇。完成前面的诸多工作之后，利用场景、物体数据和渲染机制，再配合独立性很强的求解器，物体就可以运动起来了。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-02-10T12:30:10.000Z">
-<meta property="article:modified_time" content="2023-05-30T04:03:10.287Z">
+<meta property="og:image" content="https://greyishsong.ink/images/dandelion.png">
+<meta property="article:published_time" content="2025-01-05T05:07:46.000Z">
+<meta property="article:modified_time" content="2025-01-05T12:51:18.450Z">
 <meta property="article:author" content="greyishsong">
 <meta property="article:tag" content="图形学">
-<meta property="article:tag" content="OpenGL">
+<meta property="article:tag" content="课程">
+<meta property="article:tag" content="编程">
+<meta property="article:tag" content="本科教育">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://greyishsong.ink/images/dandelion.png">
   
   
   
-  <title>OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解 - greyishsong</title>
+  <title>图形学实验框架 Dandelion 始末（六）：运动和碰撞 - greyishsong</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -45,6 +49,8 @@
   <link  rel="stylesheet" href="https://lib.baomitu.com/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.16.2/katex.min.css" />
 
 
 
@@ -248,13 +254,13 @@
   
 
 <div id="banner" class="banner" parallax=true
-     style="background: url('/images/banner.gif') no-repeat center center; background-size: cover;">
+     style="background: url('/images/dandelion.png') no-repeat center center; background-size: cover;">
   <div class="full-bg-img">
     <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"></span>
+            <span id="subtitle" data-typed-text="图形学实验框架 Dandelion 始末（六）：运动和碰撞"></span>
           
         </div>
 
@@ -265,8 +271,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2020-02-10 20:30" pubdate>
-          2020年2月10日 晚上
+        <time datetime="2025-01-05 13:07" pubdate>
+          2025年1月5日 下午
         </time>
       </span>
     
@@ -277,7 +283,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3k 字
+          1.7k 字
         
       </span>
     
@@ -288,7 +294,7 @@
         
         
         
-          25 分钟
+          15 分钟
         
       </span>
     
@@ -354,7 +360,7 @@
       
         <a href="/OpenGL%E5%AD%A6%E4%B9%A0%E6%9C%AD%E8%AE%B0%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E5%AF%B9VAO%E3%80%81VBO%E3%80%81EBO%E7%9A%84%E5%88%9D%E6%AD%A5%E7%90%86%E8%A7%A3/" title="OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解"
            class="list-group-item list-group-item-action
-           active">
+           ">
           <span class="category-post">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</span>
         </a>
       
@@ -435,7 +441,7 @@
       
         <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E5%85%AD%EF%BC%89%EF%BC%9A%E8%BF%90%E5%8A%A8%E5%92%8C%E7%A2%B0%E6%92%9E/" title="图形学实验框架 Dandelion 始末（六）：运动和碰撞"
            class="list-group-item list-group-item-action
-           ">
+           active">
           <span class="category-post">图形学实验框架 Dandelion 始末（六）：运动和碰撞</span>
         </a>
       
@@ -485,60 +491,56 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</h1>
+            <h1 id="seo-header">图形学实验框架 Dandelion 始末（六）：运动和碰撞</h1>
             
             
               <div class="markdown-body">
                 
-                <p>初学OpenGL，使用<code>VAO/VBO/EBO</code>绘图时误用了错误的绑定顺序，结果窗口上完全没有出现应有的图形。本来对于这几个概念就了解得不是很清楚，看到这种API调用顺序的问题就更无奈。重新翻开之前的课程资料，又查找了一番，对此稍作总结。</p>
+                <p>《始末》系列是关于 Dandelion 1.0 版本的个人回忆，而这是系列里关于实现过程和细节的最后一篇。完成前面的诸多工作之后，利用场景、物体数据和渲染机制，再配合独立性很强的求解器，物体就可以运动起来了。</p>
 <span id="more"></span>
-<h2 id="VAO-VBO的概念和作用">VAO/VBO的概念和作用</h2>
-<p>从渲染管线的角度来说，图形数据要经过 Vertex Data → Vertex Shader → Shape Assembly 这样的阶段，而GPU并不生成Vertex Data，这些数据首先要从CPU进入显存，才能比较快地被GPU调用。</p>
-<p>正如在OI/ACM竞赛中，不当的大量的I/O操作可以导致TLE（图论题新手惨剧之一……），频繁向显存发送顶点数据会带来时间开销的增大。OI中有一种比较极端的加速I/O方法是用C语言提供的<code>fread</code>一次性把整个文件的内容都读进来，甚至快过使用<code>getchar</code>——OpenGL也有类似的思路，一次性将一批顶点数据加载到显存中，相应的手段就是使用Vertex Buffer Object(VBO)。</p>
-<p>OpenGL Wiki上对于<code>Buffer Object</code>的定义是</p>
-<blockquote>
-<p>Buffer Objects are OpenGL Objects that store an array of unformatted memory allocated by the OpenGL context (AKA the GPU). These can be used to store vertex data, pixel data retrieved from images or the framebuffer, and a variety of other things.<a href="#link1">[1]</a></p>
-</blockquote>
-<p>它是一块<em>unformatted memory</em>，用来存储顶点数据，那么至少从逻辑上可以认为这就是一块分配来的显存（至于物理上到底是专用显存还是共享的内存就不得而知了），就像是使用高级语言时分配堆内存一样。并且这个对象只有这些数据，而没有数据格式的信息，context依然不知道如何改变状态。</p>
-<p>如果要告诉context如何读取这些顶点数据，就需要调用<code>glVertexAttribPointer</code>这个API，指定顶点属性的基本格式，并使用<code>glEnableVertexAttribArray</code>来打开顶点属性。随之而来的问题是每次绘制前必须有这个过程，如果有多个VBO就要重复多次，这实在是个繁琐的工作。但是每个VBO的数据格式又未必一样，同时这些VBO又可能被到处绑定，用循环这样的手段来处理指定格式的过程也不容易。</p>
-<p>VAO(Vertex Array Object)就解决了这个问题。</p>
-<p>还是先看官方定义：</p>
-<blockquote>
-<p>A Vertex Array Object (VAO) is an OpenGL Object that stores all of the state needed to supply vertex data (with one minor exception noted below). It stores the format of the vertex data as well as the Buffer Objects (see below) providing the vertex data arrays. Note that VAOs do not copy, freeze or store the contents of the referenced buffers - if you change any of the data in the buffers referenced by an existing VAO, those changes will be seen by users of the VAO.<a href="#link2">[2]</a></p>
-</blockquote>
-<p>一个VAO对象就存储了<em>all of the state needed to supply vertex data</em>，可以为context提供顶点属性的格式，并且它不复制也不存储顶点数据，只是个索引。那么当一个VAO中保存了VBO的索引时，只要调用<code>glBindVertexArray</code>将VAO绑定，就可以按照这个VAO的格式来解读所有这些VBO的数据，这就是使用VAO的好处。</p>
-<p><br /><br /></p>
-<h2 id="EBO的概念和作用">EBO的概念和作用</h2>
-<p>VAO和VBO解决了顶点数据的问题，但是实际情况中，显存的使用还有进一步优化的空间。</p>
-<p>比如说，考虑一个很常见的情景：形状复杂的图形需要三角化之后才能进行绘制，这时，原先的图形被大量三角形网格所代替。</p>
-<p>假设VBO中依次存放每个三角形的顶点坐标，会造成极大的内存浪费——在这个情况下，（几乎）所有的顶点都被至少2个三角形共用，一半以上的显存占用是无意义的。</p>
-<p>如果能够存放所有不同的点，用索引来查找点的位置，就可以极大地减少数据所占用的显存空间，同时由于向显存发送的顶点减少了，用于通信的时间自然也减少。OpenGL中处理顶点索引的对象就是Element Buffer Object(EBO)，保存顶点的索引而不是值。</p>
-<p><br /><br /></p>
-<h2 id="使用VAO-VBO-EBO来绘图">使用VAO/VBO/EBO来绘图</h2>
-<h3 id="使用顺序">使用顺序</h3>
-<p>根据上面的解释，VAO是用于指定顶点数据格式的，而VBO/EBO实际上都是用于存储顶点数据的。所以首先应当打开（绑定）VAO，这样之后对顶点属性的指定才会被VAO所记录；之后用VBO将顶点数据载入显存；最后再用EBO指定索引。</p>
-<p>代码的顺序应该是：</p>
-<figure><div class="code-wrapper"><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//VAO</span>
-<span class="token function">glBindVertexArray</span><span class="token punctuation">(</span>VAO<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token comment">//VBO</span>
-<span class="token function">glBindBuffer</span><span class="token punctuation">(</span>GL_ARRAY_BUFFER<span class="token punctuation">,</span> VBO<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">glBufferData</span><span class="token punctuation">(</span>GL_ARRAY_BUFFER<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>vertices<span class="token punctuation">)</span><span class="token punctuation">,</span> vertices<span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>mode<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token comment">//EBO</span>
-<span class="token function">glBindBuffer</span><span class="token punctuation">(</span>GL_ELEMENT_ARRAY_BUFFER<span class="token punctuation">,</span> EBO<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">glBufferData</span><span class="token punctuation">(</span>GL_ELEMENT_ARRAY_BUFFER<span class="token punctuation">,</span> <span class="token keyword">sizeof</span><span class="token punctuation">(</span>indices<span class="token punctuation">)</span><span class="token punctuation">,</span> indices<span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>mode<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token comment">//set attributes</span>
-<span class="token function">glVertexAttribPointer</span><span class="token punctuation">(</span><span class="token punctuation">&#123;</span>position_of_attrib<span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>size_of_attrib<span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>attrib_type<span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>if_normalized<span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>stride<span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>offset<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">glEnableAttribArray</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div></figure>
-<h3 id="使用注意">使用注意</h3>
+<h2 id="图形学中的动画">图形学中的动画</h2>
+<p>我把实时的动画渲染粗略分成三种，实现的工作量（未必等于难度）依次增加：</p>
 <ul>
-<li><code>glBufferData</code>的数据参数要求传入的是一个指向数组的指针，而根据cppreference的文档，指向vector元素的指针能传递给任何期待指向数组元素指针的函数<a href="#link3">[3]</a>。所以，在C++程序中可以使用除了<code>vector&lt;bool&gt;</code>之外的<code>vector&lt;T&gt;*</code>来代替固定的数组，用于动态地构造更复杂的形状。（<code>vector&lt;bool&gt;</code>被特化，每个元素的实际地址偏移量可能不是<code>sizeof(bool)</code>）</li>
-<li>只使用VBO绘制时，调用的绘制API是<code>glDrawArrays</code>，而使用EBO绘制时，调用的绘制API是<code>glDrawElements</code></li>
-<li>绑定VAO/VBO/EBO进行处理或绘制后，一般应及时解绑</li>
+<li>运动动画：把物体视为<strong>刚体</strong>，根据刚体运动学和动力学改变物体的位置和姿态。</li>
+<li>骨骼动画：把 Mesh 作为蒙皮，绑定到骨骼（端点相互连接的一组刚性杆）上，让 Mesh 随骨骼的运动发生形变和运动。</li>
+<li>物理动画：物体是流体或软体，使用划分微元的方法实时模拟物体各局部的运动，从而产生形变或运动。</li>
 </ul>
-<h2 id="参考资料">参考资料</h2>
-<p><a id="link1" name="link1"></a>[1]<a target="_blank" rel="noopener" href="https://www.khronos.org/opengl/wiki/Buffer_Object">OpenGL Wiki: Buffer Object</a></p>
-<p><a id="link2" name="link2"></a>[2]<a target="_blank" rel="noopener" href="https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object">OpenGL Wiki: Vertex Specification</a></p>
-<p><a id="link3" name="link3"></a>[3]<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector">cppreference: std::vector</a></p>
+<p>这种划分不怎么严谨，因为上述三种动画是可以相互交叉的。比如物理模拟也包括刚体物理模拟，而刚体模拟的反馈也可以影响骨骼的运动，并没有严格的界限。对 Dandelion 来说，第一种机制最容易实现，后两者则都需要大幅度地完善甚至重构框架。所以，Dandelion 最终只实现了刚体运动动画，甚至还不包括刚体的转动，只完成了平动。这也是我认为 Dandelion 在动画方面最为薄弱的原因。</p>
+<p>不过既然作了这样的取舍，就是想要快速高效地实现刚体的运动和碰撞，而后续的发展也确实如我所愿。</p>
+<h2 id="让画面动起来：解算和更新">让画面动起来：解算和更新</h2>
+<p>发布<a href="https://greyishsong.ink/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9AOpenGL-API-%E6%8A%BD%E8%B1%A1%E4%B8%8E%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93/">实时渲染实现</a>这篇文章到现在几乎过去了一年之久，所以我想先简单回顾一遍 Dandelion 逐帧渲染的流程：</p>
+<blockquote>
+<ol>
+<li>在 <code>Controller::render</code> 函数中，根据 <code>main_camera</code> 的参数计算出 View / Projection 矩阵，并设置 shader 中的 uniform 变量。</li>
+<li>进入 <code>Scene::render</code> 函数，遍历所有的 <code>Object</code> 并调用 <code>Object::render</code> 函数渲染物体。</li>
+<li>进入 <code>Object::render</code> 函数，设置 shader uniform 变量传入 Model 矩阵和材质参数，遍历所有的 <code>GL::Mesh</code> 对象，调用 <code>GL::Mesh::render</code> 渲染 mesh 。</li>
+<li>调用 <code>glDrawArrays</code> / <code>glDrawElements</code> 绘制图元。</li>
+</ol>
+</blockquote>
+<p>在第三步里，<code>Object</code> 的 Model 矩阵是每帧都会发送到 GPU 的，所以我们只要稍加改动，让 Model 矩阵随时间变化，就可以制造平动和转动的效果。而刚体的平动方程非常简单：</p>
+<p class="katex-block "><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo fence="true">{</mo><mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mfrac><mrow><mi mathvariant="normal">d</mi><mi mathvariant="bold">x</mi></mrow><mrow><mi mathvariant="normal">d</mi><mi>t</mi></mrow></mfrac><mo>=</mo><mi mathvariant="bold">v</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mfrac><mrow><mi mathvariant="normal">d</mi><mi mathvariant="bold">v</mi></mrow><mrow><mi mathvariant="normal">d</mi><mi>t</mi></mrow></mfrac><mo>=</mo><mi mathvariant="bold">a</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr></mtable></mrow><annotation encoding="application/x-tex">\begin{cases}
+  \frac{\mathrm{d}\mathbf{x}}{\mathrm{d}t}=\mathbf{v}(t) \\
+  \frac{\mathrm{d}\mathbf{v}}{\mathrm{d}t}=\mathbf{a}(t)
+\end{cases}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:3em;vertical-align:-1.25em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">{</span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.69em;"><span style="top:-3.69em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8801em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">d</span><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">d</span><span class="mord mathbf mtight">x</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathbf" style="margin-right:0.01597em;">v</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8801em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">d</span><span class="mord mathnormal mtight">t</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">d</span><span class="mord mathbf mtight" style="margin-right:0.01597em;">v</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathbf">a</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.19em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>只要给一个边界条件 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">x</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo><mo>=</mo><msub><mi mathvariant="bold">x</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\mathbf{x}(0)=\mathbf{x}_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbf">x</span><span class="mopen">(</span><span class="mord">0</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5944em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 就能定解，再用这个解更新物体的位置 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold">x</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathbf{x}(t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbf">x</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span></span></span></span> 就是平动了。求解微分方程的工具就是求解器，在 Dandelion 中，解算器也和渲染器一样是与场景数据解耦的，有统一的接口：输入 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> 时刻的状态 <code>KineticState</code> 和步长 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span><span class="mord mathnormal">t</span></span></span></span>，计算 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>+</mo><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">t+\Delta t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span><span class="mord mathnormal">t</span></span></span></span> 时刻的新状态。而这个过程会发生在渲染下一帧之前，也就是在上述第二步和第三步之间插入更新运动状态的操作。</p>
+<blockquote>
+<p>实际上 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span><span class="mord mathnormal">t</span></span></span></span> 一般是定值，用于控制微分方程的数值求解精度。而渲染两帧的时间间隔并不是定值，这就要求我们将累加的时间以预设的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">\Delta t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span><span class="mord mathnormal">t</span></span></span></span> 为单位重新划分。由于实验手册里已经讲了很多，这里就不再赘述。</p>
+</blockquote>
+<p>到这里，运动就算是完成了——是的，就是这么短，加入的修改也很少：</p>
+<ul>
+<li><code>Scene</code> 中增加了一个状态，区分动画是正在播放还是被暂停。</li>
+<li><code>Object</code> 增加了一个运动状态 <code>KineticState</code>，还增加了一个调用求解器的 <code>Object::update</code> 方法。</li>
+<li><code>Scene::render</code> 中额外做了一些检查，并负责调用 <code>Object::update</code>。</li>
+</ul>
+<p>求解器本身就是一个函数，<code>Object</code> 类有一个静态成员负责保存现在要用的求解器：</p>
+<figure><div class="code-wrapper"><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">static</span> std<span class="token double-colon punctuation">::</span>function<span class="token operator">&lt;</span><span class="token function">KineticState</span><span class="token punctuation">(</span><span class="token keyword">const</span> KineticState<span class="token operator">&amp;</span><span class="token punctuation">,</span> <span class="token keyword">const</span> KineticState<span class="token operator">&amp;</span><span class="token punctuation">)</span><span class="token operator">></span> step<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre></div></figure>
+<h2 id="碰撞与响应">碰撞与响应</h2>
+<p>其实加入碰撞响应的动机非常朴素：在 siyuanluo 学弟写好求解器、我加入状态更新机制以后，我们感觉就这么点儿动画功能是不是太乏味了？这时我恰好想到为渲染器而实现的 BVH 也能用来加速碰撞求解，那就加个碰撞吧！</p>
+<p>我选择的碰撞判定机制是 Mesh 对 Mesh 的离散检测 (Discrete Collision Detection)，要在每一帧两两检查物体是否存在穿插，存在则视为碰撞，并回退碰撞物体的位置、修改它们的速度。只要稍微修改 <code>Object::update</code> 轮询其他物体，然后分别试试 <code>naive_intersect</code> 和 <code>BVH::intersect</code> 能否正确检测到碰撞，这部分代码就算完成了。</p>
+<h2 id="回顾">回顾</h2>
+<p>相较于之前的每一段工作，动画部分的编程实在是太快太省，以至于为完善文档多留了一些时间出来。尽管如此，2023 年完成 Dandelion 1.0 版本也消耗了我几乎所有的课余时间——以及一部分工作时间。到研一的期末考试完全结束后，我甚至一度连续工作了 42 天（从 GitHub 提交记录上数出来的），那真是一段忘我投入的日子。1.0 版本从 4 月开发到 9 月，当我敲下 <code>git tag v1.0.0</code> 并在 GitHub 上创建第一个公开 Release 时，与小伙伴们和老师一起工作讨论的经历确实如走马灯一般在眼前闪过。</p>
+<p>相较于许许多多杰出的开源项目，Dandelion 的开发者既不算多也不算强，所以从第一篇到第六篇，我在总是在谈“取舍”，更甚于谈“优化”。这些取舍最终让 1.0 版本得以同正好 100 页的实验手册（以及说不清多少的开发者文档）一起及时发布，但也确实给我留下了许多遐想。与我而言，Dandelion 既是作品也是产品。从作品的角度看待它，我总有新的想法、新的期待和追求；从产品的角度看待它，能够为本科的同学打开一扇初窥图形学的小小窗户，并且保证这窗户不因意外的风雨而破损，这是最重要的。所以，《始末》系列的下一篇也是最后一篇文章中，我想谈谈自己为什么要成为助教、对一门计算机系专业选修课的认识和期望是什么——换言之，在第一个 commit 的起始之前以及 1.0 版本结束之后，我作为 Dandelion 背后“第一作者”的所思所想。</p>
 
                 
               </div>
@@ -574,7 +576,11 @@
       
         <a href="/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" class="print-no-link">#图形学</a>
       
-        <a href="/tags/OpenGL/" class="print-no-link">#OpenGL</a>
+        <a href="/tags/%E8%AF%BE%E7%A8%8B/" class="print-no-link">#课程</a>
+      
+        <a href="/tags/%E7%BC%96%E7%A8%8B/" class="print-no-link">#编程</a>
+      
+        <a href="/tags/%E6%9C%AC%E7%A7%91%E6%95%99%E8%82%B2/" class="print-no-link">#本科教育</a>
       
     </div>
   
@@ -586,8 +592,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解</div>
-      <div>https://greyishsong.ink/OpenGL学习札记（一）：对VAO、VBO、EBO的初步理解/</div>
+      <div>图形学实验框架 Dandelion 始末（六）：运动和碰撞</div>
+      <div>https://greyishsong.ink/图形学实验框架-Dandelion-始末（六）：运动和碰撞/</div>
     </div>
     <div class="license-meta">
       
@@ -599,7 +605,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2020年2月10日</div>
+          <div>2025年1月5日</div>
         </div>
       
       
@@ -643,18 +649,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/%E7%8B%BC%EF%BC%885%E7%AD%89%E5%88%86-22-5%C2%B0%EF%BC%89/" title="狼（5等分+22.5°）">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">狼（5等分+22.5°）</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/%E5%B9%B3%E6%9D%BF%E7%9A%84%E6%8A%98%E8%85%BE%E4%B9%8B%E6%97%85%EF%BC%9A%E4%BB%8EWindows-10%E5%88%B0Ubuntu/" title="平板的折腾之旅：从Windows 10到Ubuntu">
-                        <span class="hidden-mobile">平板的折腾之旅：从Windows 10到Ubuntu</span>
+                      <a href="/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%BA%94%EF%BC%89%EF%BC%9A%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%87%A0%E4%BD%95%E7%BC%96%E8%BE%91/" title="图形学实验框架 Dandelion 始末（五）：交互式几何编辑">
+                        <span class="hidden-mobile">图形学实验框架 Dandelion 始末（五）：交互式几何编辑</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
@@ -711,6 +711,11 @@
 
 
   
+
+
+  
+  
+
 
 
 
