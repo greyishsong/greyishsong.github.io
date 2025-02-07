@@ -15,14 +15,14 @@
     <atom:link href="https://greyishsong.ink/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description></description>
-    <pubDate>Fri, 07 Feb 2025 05:08:03 GMT</pubDate>
+    <pubDate>Fri, 07 Feb 2025 05:13:26 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
       <title>图形学实验框架 Dandelion 始末（七）：未始与未了</title>
       <link>https://greyishsong.ink/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E6%9C%AA%E5%A7%8B%E4%B8%8E%E6%9C%AA%E4%BA%86/</link>
       <guid>https://greyishsong.ink/%E5%9B%BE%E5%BD%A2%E5%AD%A6%E5%AE%9E%E9%AA%8C%E6%A1%86%E6%9E%B6-Dandelion-%E5%A7%8B%E6%9C%AB%EF%BC%88%E4%B8%83%EF%BC%89%EF%BC%9A%E6%9C%AA%E5%A7%8B%E4%B8%8E%E6%9C%AA%E4%BA%86/</guid>
-      <pubDate>Sun, 05 Jan 2025 14:11:35 GMT</pubDate>
+      <pubDate>Fri, 07 Feb 2025 05:13:35 GMT</pubDate>
       
       <description>&lt;p&gt;这一篇我想讲讲 Dandelion 开始之前与 1.0 版本结束之后的故事，“未始”代表参与图形学课程改革之前所想，“未了”代表这段经历落幕后的尾声——也是我的一点心声。由于大多是主观的经历和感受，我并不强求各位读者的赞同。如有幼稚、片面之处，请作诸君之笑料。&lt;/p&gt;</description>
       
